@@ -66,3 +66,6 @@ media/safari/NewsBlur.safariextz
 *.tfstate*
 .terraform*
 grafana.ini
+
+/.idea
+/*.iml
