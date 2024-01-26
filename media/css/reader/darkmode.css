@@ -2687,15 +2687,11 @@ ul.segmented-control li {
 }
 
 
-.NB-image-preview-large-left .NB-grid-height-m .NB-story-title-grid .NB-storytitles-story-image,
-.NB-image-preview-large-right .NB-grid-height-m .NB-story-title-grid .NB-storytitles-story-image {
+.NB-story-title-grid .NB-storytitles-story-image {
     height: 300px !important;
 }
 
-.NB-image-preview-small-left .NB-story-title-grid .NB-storytitles-story-image,
-.NB-image-preview-large-left .NB-story-title-grid .NB-storytitles-story-image,
-.NB-image-preview-small-right .NB-story-title-grid .NB-storytitles-story-image,
-.NB-image-preview-large-right .NB-story-title-grid .NB-storytitles-story-image {
+.NB-story-title-grid .NB-storytitles-story-image {
     background-size: contain;
 }
 
