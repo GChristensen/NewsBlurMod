@@ -6,7 +6,8 @@ NEWSBLUR.Views.SidebarHeader = Backbone.View.extend({
     
     events: {
         'click .NB-feeds-header-user-interactions' : 'show_interactions_popover',
-        'click .NB-feeds-header-collapse-sidebar'  : 'collapse_sidebar'
+        'click .NB-feeds-header-collapse-sidebar'  : 'collapse_sidebar',
+        'click .NB-feeds-header-enable-sorting'  : 'enable_sorting'
     },
     
     initialize: function() {
@@ -120,6 +121,15 @@ NEWSBLUR.Views.SidebarHeader = Backbone.View.extend({
     collapse_sidebar: function() {
         if (!NEWSBLUR.reader.flags['splash_page_frontmost']) {
             NEWSBLUR.reader.close_sidebar();
+        }
+    },
+
+    enable_sorting: function() {
+        var msg = "This feature is experimental. Please backup NewsBlur before using it. Click on the OK button "
+                       + "will enable drag&drop feed reordering.";
+
+        if (confirm(msg)) {
+            NEWSBLUR.reader.load_sortable_feeds(true);
         }
     }
 

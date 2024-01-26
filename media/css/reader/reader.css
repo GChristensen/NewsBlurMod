@@ -966,7 +966,7 @@ img.feed_favicon {
 }
 
 .NB-feed-sorting {
-    border: none !important;
+    /*border: none !important;*/
 }
 
 .NB-feedlist-hide-read-feeds .NB-feedlist .feed {
@@ -4895,6 +4895,7 @@ body {
     height: 28px;
     border-radius: 2px;
 }
+.NB-feeds-header-enable-sorting,
 .NB-feeds-header-collapse-sidebar,
 .NB-feeds-header-user-interactions {
     cursor: pointer;
@@ -4906,9 +4907,13 @@ body {
     line-height: 0;
     text-align: center;
 }
+.NB-feeds-header-enable-sorting {
+    right: 64px;
+}
 .NB-feeds-header-user-interactions {
     right: 32px;
 }
+.NB-feeds-header-enable-sorting img,
 .NB-feeds-header-collapse-sidebar img,
 .NB-feeds-header-user-interactions img {
     width: 16px;

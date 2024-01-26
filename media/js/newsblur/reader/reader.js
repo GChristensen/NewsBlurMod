@@ -1076,10 +1076,10 @@
             $('.folder', $feeds).tsort('.folder_title_text');
         },
         
-        load_sortable_feeds: function() {
+        load_sortable_feeds: function(autosave) {
             var self = this;
             
-            this.$s.$feed_list.sortable({
+            this.$s.$feed_list.find(".folder.NB-root").sortable({
                 items: '.feed,li.folder',
                 connectWith: 'ul.folder,.feed.NB-empty',
                 placeholder: 'NB-feeds-list-highlight',
@@ -1098,8 +1098,8 @@
                     if (ui.item.is('.folder')) {
                         ui.placeholder.html(ui.item.children().clone());
                         ui.item.data('previously_collapsed', ui.item.data('collapsed'));
-                        self.collapse_folder(ui.item.children('.folder_title'), true);
-                        self.collapse_folder(ui.placeholder.children('.folder_title'), true);
+                        //self.collapse_folder(ui.item.children('.folder_title'), true);
+                        //self.collapse_folder(ui.placeholder.children('.folder_title'), true);
                         ui.item.css('height', ui.item.children('.folder_title').outerHeight(true) + 'px');
                         ui.helper.css('height', ui.helper.children('.folder_title').outerHeight(true) + 'px');
                     } else {
@@ -1108,7 +1108,7 @@
                 },
                 change: function(e, ui) {
                     var $feeds = ui.placeholder.closest('ul.folder');
-                    self.sort_feeds($feeds);
+                    //self.sort_feeds($feeds);
                 },
                 stop: function(e, ui) {
                     setTimeout(function() {
@@ -1116,14 +1116,15 @@
                     }, 100);
                     ui.item.removeClass('NB-feed-sorting');
                     NEWSBLUR.app.feed_list.end_sorting();
-                    self.sort_feeds(e.target);
-                    self.save_feed_order();
-                    ui.item.css({'backgroundColor': '#D7DDE6'})
-                           .animate({'backgroundColor': '#F0F076'}, {'duration': 800})
-                           .animate({'backgroundColor': '#D7DDE6'}, {'duration': 1000});
+                    //self.sort_feeds(e.target);
+                    if (autosave)
+                        self.save_feed_order();
+                    // ui.item.css({'backgroundColor': '#D7DDE6'})
+                    //        .animate({'backgroundColor': '#F0F076'}, {'duration': 800})
+                    //        .animate({'backgroundColor': '#D7DDE6'}, {'duration': 1000});
                     if (ui.item.is('.folder') && !ui.item.data('previously_collapsed')) {
-                        self.collapse_folder(ui.item.children('.folder_title'));
-                        self.collapse_folder(ui.placeholder.children('.folder_title'));
+                        //self.collapse_folder(ui.item.children('.folder_title'));
+                        //self.collapse_folder(ui.placeholder.children('.folder_title'));
                     }
                 }
             });
@@ -1132,8 +1133,9 @@
         save_feed_order: function() {
             var combine_folders = function($folder) {
                 var folders = [];
-                var $items = $folder.children('li.folder, .feed');
-                
+                var $items = $folder.find('> li.folder');
+                $items = $items.add($folder.find('> li.feed'));
+
                 for (var i=0, i_count=$items.length; i < i_count; i++) {
                     var $item = $items.eq(i);
 
@@ -1143,7 +1145,7 @@
                             folders.push(feed_id);
                         }
                     } else if ($item.hasClass('folder')) {
-                        var folder_title = $item.find('.folder_title_text').eq(0).text();
+                        var folder_title = $item.find('.folder_title_text').eq(0).text().trim();
                         var child_folders = {};
                         child_folders[folder_title] = combine_folders($item.children('ul.folder').eq(0));
                         folders.push(child_folders);
@@ -1152,8 +1154,8 @@
                 
                 return folders;
             };
-            
-            var combined_folders = combine_folders(this.$s.$feed_list);
+
+            var combined_folders = combine_folders(this.$s.$feed_list.find(".folder.NB-root"));
             // NEWSBLUR.log(['Save new folder/feed order', {'combined': combined_folders}]);
             this.model.save_feed_order(combined_folders);
         },
