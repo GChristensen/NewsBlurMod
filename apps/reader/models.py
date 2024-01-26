@@ -112,7 +112,7 @@ class UserSubscription(models.Model):
     @classmethod
     def story_hashes(cls, user_id, feed_ids=None, usersubs=None, read_filter="unread", order="newest", 
                      include_timestamps=False, group_by_feed=False, cutoff_date=None,
-                     across_all_feeds=True, store_stories_key=None, offset=0, limit=500):
+                     across_all_feeds=True, store_stories_key=None, offset=0, limit=2000):
         r = redis.Redis(connection_pool=settings.REDIS_STORY_HASH_POOL)
         pipeline = r.pipeline()
         user = User.objects.get(pk=user_id)

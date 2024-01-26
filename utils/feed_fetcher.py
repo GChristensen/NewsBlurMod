@@ -485,7 +485,7 @@ class ProcessFeed:
             if feed_status and ret_values:
                 return feed_status, ret_values
         
-        self.fpf.entries = self.fpf.entries[:100]
+        self.fpf.entries = self.fpf.entries[:2000]
 
         if not self.options.get('archive_page', None):
             self.compare_feed_attribute_changes()
