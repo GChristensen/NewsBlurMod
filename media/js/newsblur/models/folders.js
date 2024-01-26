@@ -359,8 +359,8 @@ NEWSBLUR.Collections.Folders = Backbone.Collection.extend({
 
     comparator: function(modelA, modelB) {
         // toUpperCase for historical reasons
-        var sort_order = NEWSBLUR.assets.preference('feed_order').toUpperCase();
-        
+        var sort_order = "NONE"// NEWSBLUR.assets.preference('feed_order').toUpperCase();
+
         if (NEWSBLUR.Collections.Folders.organizer_sortorder) {
             sort_order = NEWSBLUR.Collections.Folders.organizer_sortorder.toUpperCase();
         }
@@ -370,51 +370,54 @@ NEWSBLUR.Collections.Folders = Backbone.Collection.extend({
             high = -1;
             low = 1;
         }
-        
+
         if (modelA.is_feed() != modelB.is_feed()) {
             // Feeds above folders
-            return modelA.is_feed() ? -1 : 1;
+            return 0//modelA.is_feed() ? -1 : 1;
         }
         if (modelA.is_folder() && modelB.is_folder()) {
             // Folders are alphabetical
-            return modelA.get('folder_title').toLowerCase() > modelB.get('folder_title').toLowerCase() ? 1 : -1;
+            return 0//modelA.get('folder_title').toLowerCase() > modelB.get('folder_title').toLowerCase() ? 1 : -1;
         }
-        
+
         var feedA = modelA.feed;
         var feedB = modelB.feed;
-        
+
         if (!feedA || !feedB) {
             return !feedA ? 1 : -1;
         }
-        
+
         var remove_articles = function(str) {
             var words = str.split(" ");
             if (words.length <= 1) return str;
             if (words[0] == 'the') return words.splice(1).join(" ");
             return str;
         };
-        
+
         var feed_a_title = remove_articles(feedA.get('feed_title').toLowerCase());
         var feed_b_title = remove_articles(feedB.get('feed_title').toLowerCase());
-        
+
         if (sort_order == 'ALPHABETICAL' || !sort_order) {
             return feed_a_title > feed_b_title ? high : low;
         } else if (sort_order == 'MOSTUSED') {
-            return feedA.get('feed_opens') < feedB.get('feed_opens') ? high : 
-                (feedA.get('feed_opens') > feedB.get('feed_opens') ? low : 
+            return feedA.get('feed_opens') < feedB.get('feed_opens') ? high :
+                (feedA.get('feed_opens') > feedB.get('feed_opens') ? low :
                 (feed_a_title > feed_b_title ? high : low));
         } else if (sort_order == 'RECENCY') {
-            return feedA.get('last_story_seconds_ago') < feedB.get('last_story_seconds_ago') ? high : 
-                (feedA.get('last_story_seconds_ago') > feedB.get('last_story_seconds_ago') ? low : 
-                (feed_a_title > feed_b_title ? high : low));            
+            return feedA.get('last_story_seconds_ago') < feedB.get('last_story_seconds_ago') ? high :
+                (feedA.get('last_story_seconds_ago') > feedB.get('last_story_seconds_ago') ? low :
+                (feed_a_title > feed_b_title ? high : low));
         } else if (sort_order == 'FREQUENCY') {
-            return feedA.get('average_stories_per_month') < feedB.get('average_stories_per_month') ? high : 
-                (feedA.get('average_stories_per_month') > feedB.get('average_stories_per_month') ? low : 
-                (feed_a_title > feed_b_title ? high : low)); 
+            return feedA.get('average_stories_per_month') < feedB.get('average_stories_per_month') ? high :
+                (feedA.get('average_stories_per_month') > feedB.get('average_stories_per_month') ? low :
+                (feed_a_title > feed_b_title ? high : low));
         } else if (sort_order == 'SUBSCRIBERS') {
-            return feedA.get('num_subscribers') < feedB.get('num_subscribers') ? high : 
-                (feedA.get('num_subscribers') > feedB.get('num_subscribers') ? low : 
-                (feed_a_title > feed_b_title ? high : low)); 
+            return feedA.get('num_subscribers') < feedB.get('num_subscribers') ? high :
+                (feedA.get('num_subscribers') > feedB.get('num_subscribers') ? low :
+                (feed_a_title > feed_b_title ? high : low));
+        }
+        else if (sort_order == 'NONE') {
+            return 0;
         }
     }
 
