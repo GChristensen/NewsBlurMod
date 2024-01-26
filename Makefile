@@ -1,19 +1,18 @@
-SHELL := /bin/bash
+SHELL := sh
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
-newsblur := $(shell gtimeout 2s docker ps -qf "name=newsblur_web")
 
 .PHONY: node
 
-nb: pull bounce migrate bootstrap collectstatic
+nb: build_deploy pull bounce migrate bootstrap collectstatic
 
 metrics:
 	RUNWITHMAKEBUILD=True CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker compose -f docker-compose.yml -f docker-compose.metrics.yml up -d
 
-collectstatic: 
+collectstatic:
 	rm -fr static
-	docker pull newsblur/newsblur_deploy
-	docker run --rm -v $(shell pwd):/srv/newsblur newsblur/newsblur_deploy
+	#docker pull newsblur/newsblur_deploy
+	docker run --rm -v "$(shell pwd | sed -E 's/^\/(\w)(\/.*)/\1:\2/' | sed -E 's/\//\\/g')":/srv/newsblur newsblur/newsblur_deploy
 
 #creates newsblur, builds new images, and creates/refreshes SSL keys
 bounce:
@@ -31,7 +30,7 @@ coffee:
 migrations:
 	docker exec -it newsblur_web ./manage.py makemigrations
 makemigration: migrations
-datamigration: 
+datamigration:
 	docker exec -it newsblur_web ./manage.py makemigrations --empty $(app)
 migration: migrations
 migrate:
@@ -51,7 +50,7 @@ logcelery:
 logtask: logcelery
 logmongo:
 	RUNWITHMAKEBUILD=True docker compose logs -f db_mongo
-alllogs: 
+alllogs:
 	RUNWITHMAKEBUILD=True docker compose logs -f --tail 20
 logall: alllogs
 mongo:
@@ -78,12 +77,12 @@ test:
 keys:
 	mkdir config/certificates
 	openssl dhparam -out config/certificates/dhparam-2048.pem 2048
-	openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout config/certificates/RootCA.key -out config/certificates/RootCA.pem -subj "/C=US/CN=Example-Root-CA"
-	openssl x509 -outform pem -in config/certificates/RootCA.pem -out config/certificates/RootCA.crt
-	openssl req -new -nodes -newkey rsa:2048 -keyout config/certificates/localhost.key -out config/certificates/localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost"
-	openssl x509 -req -sha256 -days 1024 -in config/certificates/localhost.csr -CA config/certificates/RootCA.pem -CAkey config/certificates/RootCA.key -CAcreateserial -out config/certificates/localhost.crt
-	cat config/certificates/localhost.crt config/certificates/localhost.key > config/certificates/localhost.pem
-	sudo /usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./config/certificates/RootCA.crt
+	MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout config/certificates/RootCA.key -out config/certificates/RootCA.pem -subj "/C=US/CN=Example-Root-CA"
+	MSYS_NO_PATHCONV=1 openssl x509 -outform pem -in config/certificates/RootCA.pem -out config/certificates/RootCA.crt
+	MSYS_NO_PATHCONV=1 openssl req -new -nodes -newkey rsa:2048 -keyout config/certificates/localhost.key -out config/certificates/localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost"
+	MSYS_NO_PATHCONV=1 openssl x509 -req -sha256 -days 1024 -in config/certificates/localhost.csr -CA config/certificates/RootCA.pem -CAkey config/certificates/RootCA.key -CAcreateserial -out config/certificates/localhost.crt
+	MSYS_NO_PATHCONV=1 cat config/certificates/localhost.crt config/certificates/localhost.key > config/certificates/localhost.pem
+#	sudo /usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./config/certificates/RootCA.crt
 
 # Doesn't work yet
 mkcert:
@@ -133,7 +132,7 @@ build_node:
 build_monitor: 
 	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/monitor/Dockerfile --tag=newsblur/newsblur_monitor
 build_deploy: 
-	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/newsblur_deploy.Dockerfile --tag=newsblur/newsblur_deploy
+	docker buildx build . --file=docker/newsblur_deploy.Dockerfile --tag=newsblur/newsblur_deploy
 build: build_web build_node build_monitor build_deploy
 push_web:
 	docker buildx build . --push --platform linux/amd64,linux/arm64 --file=docker/newsblur_base_image.Dockerfile --tag=newsblur/newsblur_python3
