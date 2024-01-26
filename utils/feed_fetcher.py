@@ -808,7 +808,7 @@ class ProcessFeed:
             hub_url
             and self_url
             and not settings.DEBUG
-            and self.feed.active_subscribers > 0
+            #and self.feed.active_subscribers > 0
             and (push_expired or not self.feed.is_push or self.options.get('force'))
         ):
             logging.debug(
