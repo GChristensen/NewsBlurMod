@@ -111,7 +111,7 @@ MAX_EMAILS_SENT_PER_DAY_PER_USER = 20 # Most are story notifications
 
 
 MIDDLEWARE = (
-    'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    #'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'subdomains.middleware.SubdomainMiddleware',
@@ -130,7 +130,7 @@ MIDDLEWARE = (
     'apps.profile.middleware.DBProfilerMiddleware',
     'apps.profile.middleware.SQLLogToConsoleMiddleware',
     'utils.redis_raw_log_middleware.RedisDumpMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
+    #'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (
