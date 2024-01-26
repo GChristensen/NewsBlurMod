@@ -1493,6 +1493,8 @@ class UserSubscriptionFolders(models.Model):
         self.save()
     
     def arranged_folders(self):
+        return json.decode(self.folders)
+
         user_sub_folders = json.decode(self.folders)
         def _arrange_folder(folder):
             folder_feeds = []
