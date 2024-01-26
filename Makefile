@@ -34,7 +34,7 @@ datamigration:
 	docker exec -it newsblur_web ./manage.py makemigrations --empty $(app)
 migration: migrations
 migrate:
-	docker exec -it newsblur_web ./manage.py migrate
+	read -p "Waiting servers up" -t 5 ; docker exec -it newsblur_web ./manage.py migrate
 shell:
 	docker exec -it newsblur_web ./manage.py shell_plus
 bash:
