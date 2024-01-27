@@ -1,3 +1,56 @@
+# NewsBlurMod
+
+This is a fork of [NewsBlur](https://github.com/samuelclay/NewsBlur) for self-hosting with 
+Docker Desktop under Windows.
+
+## Modifications
+* It is possible to self-host this repo under Windows as is.
+* Increased the limit of maximum 100 unread stories. The current limit is 2000.
+* Disabled alphabetical sorting of feeds in the sidebar. It is possible to sort feeds using
+  drag&drop or through the development JavaScript console.
+* Enlarged preview images in the grid mode, changed content position of the images 
+  to "contain" instead of "fill".
+* New dark theme.
+* Websub is enabled by default, timing limits on websub pushes are removed, subscription lease
+  is infinite.
+* Disabled Prometheus middleware.
+
+## Installation Instructions
+* Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+* Install the latest [Git for Windows](https://git-scm.com/download/win).
+* Install [MSYS2](https://www.msys2.org/) and MINGW-w64.
+* Add full paths of `usr/bin` and `mingw64/bin` MSYS directories to the system PATH variable.
+  Ensure that they appear before any Git directory. If there are some Git binaries
+  in `usr/bin` rename or move them to make the original Git for Windows the default 
+  Git implementation.
+* Make the `mingw32-make.exe` from `mingw64/bin` directory available as `make.exe` by 
+  creating a copy or a filesystem link to this file.
+* Clone this repository with the following command: 
+```shell
+git clone -c core.autocrlf=false -c core.symlinks=true https://github.com/GChristensen/NewsBlurMod 
+```
+* Add the following entry into the `C:\Windows\System32\drivers\etc\hosts` file:
+```
+127.0.0.1 newsblur
+```
+If you are deploying it on an another machine, put the IP address of that machine instead of
+`127.0.0.1`.
+* Change the current directory of Windows terminal to the repo directory and execute `make nb`.
+* After the build is finished, open https://newsblur in the browser. Please read the original 
+  readme below for more details.
+* Create a user account and login.
+* If all premium features are not enabled automatically, execute the following code in the terminal:
+```
+  make shell
+  
+  u = User.objects.get(username='YOUR_USERNAME')
+  u.profile.activate_premium()
+  u.profile.activate_archive(True)
+  u.profile.activate_pro(True)
+```
+
+----
+
 # NewsBlur
 
  * NewsBlur is a personal news reader bringing people together 
