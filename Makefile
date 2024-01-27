@@ -7,6 +7,8 @@ CURRENT_GID := $(shell id -g)
 
 nb: build_deploy pull bounce migrate bootstrap collectstatic
 
+provided: bounce migrate bootstrap collectstatic
+
 metrics:
 	RUNWITHMAKEBUILD=True CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker compose -f docker-compose.yml -f docker-compose.metrics.yml up -d
 
