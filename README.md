@@ -19,7 +19,7 @@ Docker Desktop under Windows.
 * Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 * Install the latest [Git for Windows](https://git-scm.com/download/win).
 * Install [MSYS2](https://www.msys2.org/) and MINGW-w64.
-* Issue the command `ms-settings:developers` in terminal and enable developer settings. 
+* Issue the command `ms-settings:developers` in the terminal and enable developer settings. 
 * Add full paths of `usr/bin` and `mingw64/bin` MSYS directories to the system PATH variable.
   Ensure that they appear before any Git directory. If there are some Git binaries
   in `usr/bin` rename or move them to make the original Git for Windows the default 
