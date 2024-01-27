@@ -1129,35 +1129,58 @@
                 }
             });
         },
-        
-        save_feed_order: function() {
-            var combine_folders = function($folder) {
-                var folders = [];
-                var $items = $folder.find('> li.folder');
-                $items = $items.add($folder.find('> li.feed'));
 
-                for (var i=0, i_count=$items.length; i < i_count; i++) {
-                    var $item = $items.eq(i);
+        combine_folders: function($folder, feed_titles = {}) {
+            var folders = [];
+            var $items = $folder.find('> li.folder');
+            $items = $items.add($folder.find('> li.feed'));
 
-                    if ($item.hasClass('feed')) {
-                        var feed_id = parseInt($item.data('id'), 10);
-                        if (feed_id) {
-                            folders.push(feed_id);
-                        }
-                    } else if ($item.hasClass('folder')) {
-                        var folder_title = $item.find('.folder_title_text').eq(0).text().trim();
-                        var child_folders = {};
-                        child_folders[folder_title] = combine_folders($item.children('ul.folder').eq(0));
-                        folders.push(child_folders);
+            for (var i=0, i_count=$items.length; i < i_count; i++) {
+                var $item = $items.eq(i);
+
+                if ($item.hasClass('feed')) {
+                    var feed_id = parseInt($item.data('id'), 10);
+                    if (feed_id) {
+                        feed_titles[feed_id] = $item.find('.feed_title').eq(0).text().trim();
+                        folders.push(feed_id);
                     }
+                } else if ($item.hasClass('folder')) {
+                    var folder_title = $item.find('.folder_title_text').eq(0).text().trim();
+                    var child_folders = {};
+                    child_folders[folder_title] = this.combine_folders($item.children('ul.folder').eq(0), feed_titles);
+                    folders.push(child_folders);
                 }
-                
-                return folders;
-            };
+            }
 
-            var combined_folders = combine_folders(this.$s.$feed_list.find(".folder.NB-root"));
+            return folders;
+        },
+
+        save_feed_order: function() {
+            var combined_folders = this.combine_folders(this.$s.$feed_list.find(".folder.NB-root"));
             // NEWSBLUR.log(['Save new folder/feed order', {'combined': combined_folders}]);
             this.model.save_feed_order(combined_folders);
+        },
+
+        get_feed_order: function () {
+            var feed_titles = {};
+            var combined_folders =
+                this.combine_folders(this.$s.$feed_list.find(".folder.NB-root"), feed_titles);
+            var json =  JSON.stringify(combined_folders, null, 2);
+
+            for (var kv of Object.entries(feed_titles)) {
+                console.log(kv)
+                json = json.replace(new RegExp(`^(\\s+)${kv[0]}(,?)$`, "m"), `\$1${kv[0]}\$2 // ${kv[1]}`)
+            }
+
+            console.log("This feature is experimental. Please backup NewsBlur before using it.\n" +
+                        "Reorder the following array and pass it in the console as it is shown below: "
+                      + "\n\nNEWSBLUR.reader.set_feed_order([\n  <reordered array contents>\n])");
+
+            console.log(json);
+        },
+
+        set_feed_order: function (order) {
+            this.model.save_feed_order(order);
         },
         
         show_feed_chooser_button: function() {
