@@ -7,7 +7,8 @@ NEWSBLUR.Views.SidebarHeader = Backbone.View.extend({
     events: {
         'click .NB-feeds-header-user-interactions' : 'show_interactions_popover',
         'click .NB-feeds-header-collapse-sidebar'  : 'collapse_sidebar',
-        'click .NB-feeds-header-enable-sorting'  : 'enable_sorting'
+        'click .NB-feeds-header-enable-sorting'  : 'enable_sorting',
+        'click .NB-feeds-header-feedxcavator'  : 'open_feedxcavator'
     },
     
     initialize: function() {
@@ -134,6 +135,9 @@ NEWSBLUR.Views.SidebarHeader = Backbone.View.extend({
         if (confirm(msg)) {
             NEWSBLUR.reader.load_sortable_feeds(true);
         }
-    }
+    },
 
+    open_feedxcavator: function() {
+        window.open("http://feeds:10000", "_blank");
+    }
 });

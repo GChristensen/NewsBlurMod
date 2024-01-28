@@ -253,6 +253,7 @@ color: #a85b40;
 }
 
 .NB-dark .NB-feeds-header-enable-sorting:hover img,
+.NB-dark .NB-feeds-header-feedxcavator img,
 .NB-dark .NB-feeds-header-user-interactions:hover img, 
 .NB-dark .NB-feeds-header-collapse-sidebar:hover img {
     opacity: 1.0;
