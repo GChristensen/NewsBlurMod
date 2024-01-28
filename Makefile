@@ -3,7 +3,7 @@ SHELL := sh
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
 
-SERVER_WAIT_DELAY := 10
+SERVER_WAIT_DELAY := 30
 
 .PHONY: node
 
@@ -40,8 +40,7 @@ datamigration:
 migration: migrations
 migrate:
 	@read -p "Waiting $(SERVER_WAIT_DELAY) sec. until servers become online. \
-Increase the SERVER_WAIT_DELAY variable in the makefile if you get connection errors." -t $(SERVER_WAIT_DELAY)
-	docker exec -it newsblur_web ./manage.py migrate
+Increase the SERVER_WAIT_DELAY variable in the makefile if you get connection errors." -t $(SERVER_WAIT_DELAY) ; docker exec -it newsblur_web ./manage.py migrate
 
 shell:
 	docker exec -it newsblur_web ./manage.py shell_plus
