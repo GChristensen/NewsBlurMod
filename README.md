@@ -26,6 +26,8 @@ Docker Desktop under Windows.
   Git implementation.
 * Make the `mingw32-make.exe` from `mingw64/bin` directory available as `make.exe` by 
   creating a copy or a filesystem link to this file.
+* Make sure that the directory where you will clone the repo has "Full control" 
+  security permissions for unprivileged users.
 * Clone this repository with the following command: 
 ```shell
 git clone -c core.autocrlf=false -c core.symlinks=true https://github.com/GChristensen/NewsBlurMod 
@@ -49,6 +51,8 @@ If you are deploying it on an another machine, put the IP address of that machin
   u.profile.activate_archive(True)
   u.profile.activate_pro(True)
 ```
+* On slow machines some servers, for example node, may start before databases are online.
+  It is necessary to restart their corresponding containers to make them work properly.
 
 ----
 
