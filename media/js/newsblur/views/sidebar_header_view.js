@@ -127,8 +127,9 @@ NEWSBLUR.Views.SidebarHeader = Backbone.View.extend({
     enable_sorting: function() {
         var msg = "Click on the OK button in this dialog will enable drag&drop feed reordering. "
                        + "This feature is experimental and is currently suitable only for the top-level ordering. "
-                       + "Please backup NewsBlur before using it. For more precise sorting copy&paste the following "
-                       + "into the development tools console: \n\nNEWSBLUR.reader.get_feed_order()";
+                       + "Please backup NewsBlur docker/volumes directory before using it. For more precise sorting "
+                       + "copy&paste the following lnie into the development tools console (F12) and press <Enter>: "
+                       + "\n\nNEWSBLUR._feed_order";
 
         if (confirm(msg)) {
             NEWSBLUR.reader.load_sortable_feeds(true);

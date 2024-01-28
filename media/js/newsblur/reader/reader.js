@@ -154,6 +154,11 @@
             this.switch_story_layout();
             this.load_delayed_stylesheets();
             this.load_theme();
+
+            Object.defineProperty(NEWSBLUR, '_feed_order', {
+                set: function(order) { NEWSBLUR.reader.set_feed_order(order); return null; },
+                get: function() { return NEWSBLUR.reader.get_feed_order(); }
+            });
         },
 
         // ========
@@ -1172,9 +1177,9 @@
                 json = json.replace(new RegExp(`^(\\s+)${kv[0]}(,?)$`, "m"), `\$1${kv[0]}\$2 // ${kv[1]}`)
             }
 
-            console.log("This feature is experimental. Please backup NewsBlur before using it.\n" +
-                        "Reorder the following array and pass it in the console as it is shown below: "
-                      + "\n\nNEWSBLUR.reader.set_feed_order([\n  <reordered array contents>\n])");
+            console.log("This feature is experimental. Please backup NewsBlur database before using it.\n" +
+                        "Reorder the following array and assign it in the console as it is shown below: "
+                      + "\n\nNEWSBLUR._feed_order = [\n  <reordered array contents>\n]\n");
 
             console.log(json);
         },
