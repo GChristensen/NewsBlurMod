@@ -140,7 +140,7 @@ services:
     restart: unless-stopped
     ports:
       - 29019:29019
-    command: mongod --port 29019
+    command: mongod --port 29019 --dbpath /data/db
     volumes:
       - ./docker/volumes/db_mongo:/data/db
 

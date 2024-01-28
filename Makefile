@@ -3,6 +3,8 @@ SHELL := sh
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
 
+SERVER_WAIT_DELAY := 10
+
 .PHONY: node
 
 nb: build_deploy pull bounce migrate bootstrap collectstatic
@@ -37,7 +39,10 @@ datamigration:
 	docker exec -it newsblur_web ./manage.py makemigrations --empty $(app)
 migration: migrations
 migrate:
-	read -p "Waiting servers up" -t 5 ; docker exec -it newsblur_web ./manage.py migrate
+	@read -p "Waiting $(SERVER_WAIT_DELAY) sec. until servers become online. \
+Increase the SERVER_WAIT_DELAY variable in the makefile if you get connection errors." -t $(SERVER_WAIT_DELAY)
+	docker exec -it newsblur_web ./manage.py migrate
+
 shell:
 	docker exec -it newsblur_web ./manage.py shell_plus
 bash:
