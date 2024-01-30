@@ -40,7 +40,8 @@ datamigration:
 migration: migrations
 migrate:
 	@read -p "Waiting $(SERVER_WAIT_DELAY) sec. until servers become online. \
-Increase the SERVER_WAIT_DELAY variable in the makefile if you get connection errors." -t $(SERVER_WAIT_DELAY) ; docker exec -it newsblur_web ./manage.py migrate
+Increase the value of the SERVER_WAIT_DELAY variable in the makefile if you get connection errors." -t $(SERVER_WAIT_DELAY) ; true
+	docker exec -it newsblur_web ./manage.py migrate
 
 shell:
 	docker exec -it newsblur_web ./manage.py shell_plus

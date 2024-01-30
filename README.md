@@ -1,10 +1,11 @@
 # NewsBlurMod
 
 This is a fork of [NewsBlur](https://github.com/samuelclay/NewsBlur) for self-hosting with 
-Docker Desktop under Windows.
+Docker under Windows.
 
 ## Modifications
-* It is possible to self-host this repo under Windows as is.
+* It is possible to self-host this repo under Windows as is. It could be run either 
+  directly under Docker Desktop or under Docker Engine inside WSL2.
 * Increased the limit of maximum 100 unread stories. The current limit is 2000.
 * Disabled alphabetical sorting of feeds in the sidebar. It is possible to sort feeds using
   drag&drop or through the development JavaScript console.
@@ -16,6 +17,49 @@ Docker Desktop under Windows.
 * Disabled Prometheus middleware.
 
 ## Installation Instructions
+
+### Running under Docker Engine inside WSL2
+* Enable 'Virtual Machine Platform' and 'WSL2' Windows system components.
+* Install openSUSE Linux distribution by issuing `wsl --install openSUSE-Tumbleweed` in the terminal.
+* Enable systemd in your WSL terminal by issuing `sudo -e /etc/wsl.conf` and placing the
+  following text into it:
+```
+[boot]
+systemd=true
+```
+Shutdown WSL with the command: `wsl --shutdown` in the Windows terminal.
+* Start WSL again by issuing `wsl` in the Windows terminal. Install required packages using the following
+ command in the WSL terminal:
+```
+sudo zypper in make git openssl nodejs21 docker docker-compose docker-compose-switch
+```
+* Configure docker:
+```
+sudo systemctl enable docker
+sudo usermod -G docker -a $USER;
+newgrp docker
+sudo systemctl restart docker
+```
+* Clone the repo in the home directory of your WSL distribution with the following 
+* command: `git clone https://github.com/GChristensen/NewsBlurMod`
+* Change to the `NewsBlurMod` directory and execute the following commands to configure directory access:
+```
+   mkdir ./docker/volumens/elasticsearch
+   sudo chmod 777 ./docker/volumens/elasticsearch
+   mkdir ./docker/volumens/elasticsearch
+   sudo chmod 777 ./docker/volumes/db_mongo
+```
+If db_mongo or elasticsearch containers fail to start, it is also worth to try:
+```
+sudo chown -R 999:1000 ./docker/volumens/elasticsearch
+sudo chown -R 999:1000 ./docker/volumens/db_mongo
+```
+* Issue the following command to build NewsBlur: `sudo make nb -f Makefile.unix`
+Restart Windows after the build is finished.
+
+### Running under Docker Desktop
+This method may result in substantial performance loss on slow machines.
+
 * Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 * Install the latest [Git for Windows](https://git-scm.com/download/win).
 * Install [MSYS2](https://www.msys2.org/) and MINGW-w64.
@@ -29,16 +73,19 @@ Docker Desktop under Windows.
 * Make sure that the directory where you will clone the repo has "Full control" 
   security permissions for unprivileged users.
 * Clone this repository with the following command: 
-```shell
+```
 git clone -c core.autocrlf=false -c core.symlinks=true https://github.com/GChristensen/NewsBlurMod 
 ```
 * Add the following entry into the `C:\Windows\System32\drivers\etc\hosts` file:
 ```
 127.0.0.1 newsblur
 ```
-If you are deploying it on an another machine, put the IP address of that machine instead of
+If you are deploying it on another machine, put the IP address of that machine instead of
 `127.0.0.1`.
 * Change the current directory of Windows terminal to the repo directory and execute `make nb`.
+
+### User Configuration
+
 * After the build is finished, open https://newsblur in the browser. Please read the original 
   readme below for more details.
 * Create a user account and login.
