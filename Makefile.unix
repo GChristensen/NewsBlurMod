@@ -1,18 +1,19 @@
 SHELL := /bin/bash
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
-newsblur := $(shell gtimeout 2s docker ps -qf "name=newsblur_web")
+
+SERVER_WAIT_DELAY := 30
 
 .PHONY: node
 
-nb: pull bounce migrate bootstrap collectstatic
+nb: build_deploy pull bounce migrate bootstrap collectstatic
 
 metrics:
 	RUNWITHMAKEBUILD=True CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker compose -f docker-compose.yml -f docker-compose.metrics.yml up -d
 
 collectstatic:
 	rm -fr static
-	docker pull newsblur/newsblur_deploy
+	#docker pull newsblur/newsblur_deploy
 	docker run --rm -v $(shell pwd):/srv/newsblur newsblur/newsblur_deploy
 
 #creates newsblur, builds new images, and creates/refreshes SSL keys
@@ -35,7 +36,9 @@ datamigration:
 	docker exec -it newsblur_web ./manage.py makemigrations --empty $(app)
 migration: migrations
 migrate:
-	docker exec -it newsblur_web ./manage.py migrate
+	@read -p "Waiting $(SERVER_WAIT_DELAY) sec. until servers become online. \
+Increase the SERVER_WAIT_DELAY variable in the makefile if you get connection errors." -t $(SERVER_WAIT_DELAY) ; docker exec -it newsblur_web ./manage.py migrate
+
 shell:
 	docker exec -it newsblur_web ./manage.py shell_plus
 bash:
@@ -83,7 +86,7 @@ keys:
 	openssl req -new -nodes -newkey rsa:2048 -keyout config/certificates/localhost.key -out config/certificates/localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost"
 	openssl x509 -req -sha256 -days 1024 -in config/certificates/localhost.csr -CA config/certificates/RootCA.pem -CAkey config/certificates/RootCA.key -CAcreateserial -out config/certificates/localhost.crt
 	cat config/certificates/localhost.crt config/certificates/localhost.key > config/certificates/localhost.pem
-	sudo /usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./config/certificates/RootCA.crt
+	#sudo /usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./config/certificates/RootCA.crt
 
 # Doesn't work yet
 mkcert:
@@ -133,7 +136,7 @@ build_node:
 build_monitor:
 	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/monitor/Dockerfile --tag=newsblur/newsblur_monitor
 build_deploy:
-	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/newsblur_deploy.Dockerfile --tag=newsblur/newsblur_deploy
+	docker buildx build . --file=docker/newsblur_deploy.Dockerfile --tag=newsblur/newsblur_deploy
 build: build_web build_node build_monitor build_deploy
 push_web:
 	docker buildx build . --push --platform linux/amd64,linux/arm64 --file=docker/newsblur_base_image.Dockerfile --tag=newsblur/newsblur_python3

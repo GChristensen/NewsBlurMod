@@ -134,11 +134,11 @@ local_build_web:
 	docker build . --file=docker/newsblur_base_image.Dockerfile --tag=newsblur/newsblur_python3
 build_web:
 	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/newsblur_base_image.Dockerfile --tag=newsblur/newsblur_python3
-build_node: 
+build_node:
 	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/node/Dockerfile --tag=newsblur/newsblur_node
-build_monitor: 
+build_monitor:
 	docker buildx build . --platform linux/amd64,linux/arm64 --file=docker/monitor/Dockerfile --tag=newsblur/newsblur_monitor
-build_deploy: 
+build_deploy:
 	docker buildx build . --file=docker/newsblur_deploy.Dockerfile --tag=newsblur/newsblur_deploy
 build: build_web build_node build_monitor build_deploy
 push_web:
