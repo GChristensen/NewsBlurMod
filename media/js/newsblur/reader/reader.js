@@ -1173,13 +1173,13 @@
             var json =  JSON.stringify(combined_folders, null, 2);
 
             for (var kv of Object.entries(feed_titles)) {
-                console.log(kv)
-                json = json.replace(new RegExp(`^(\\s+)${kv[0]}(,?)$`, "m"), `\$1${kv[0]}\$2 // ${kv[1]}`)
+                json = json.replace(new RegExp(`^(\\s+)${kv[0]}(,?)$`, "m"), `\$1${kv[0]}\$2 // ${kv[1]}`);
             }
 
+            json = "NEWSBLUR._feed_order = " + json;
+
             console.log("This feature is experimental. Please backup NewsBlur database before using it.\n" +
-                        "Reorder the following array and assign it in the console as it is shown below: "
-                      + "\n\nNEWSBLUR._feed_order = [\n  <reordered array contents>\n]\n");
+                        "Copy and paste the following command into the console, reorder the array and press <Enter>.\n\n");
 
             console.log(json);
         },
