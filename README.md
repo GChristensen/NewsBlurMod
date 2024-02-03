@@ -12,8 +12,8 @@ Docker under Windows.
 * Enlarged preview images in the grid mode, changed content position of the images 
   to "contain" instead of "fill".
 * New dark theme.
-* Websub is enabled by default, timing limits on websub pushes are removed, subscription lease
-  is infinite.
+* Websub is enabled by default, throttling of websub pushes is turned off, subscription lease
+  is infinite, so NewsBlurMod could seamlessly be used with [Feedxcavator](https://github.com/GChristensen/feedxcavator).
 * Disabled Prometheus middleware.
 
 ## Installation Instructions
