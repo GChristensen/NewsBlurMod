@@ -2693,7 +2693,7 @@ ul.segmented-control li {
 }
 
 .NB-story-title-grid .NB-storytitles-story-image {
-    background-size: contain;
+    background-size: contain !important;
 }
 
 .story_date {
