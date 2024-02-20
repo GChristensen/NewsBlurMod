@@ -698,7 +698,7 @@ def load_single_feed(request, feed_id):
         stories = usersub.get_stories(order=order, read_filter=read_filter, offset=offset, limit=limit)
     else:
         stories = feed.get_stories(offset, limit, order=order)
-    
+
     checkpoint1 = time.time()
     
     try:

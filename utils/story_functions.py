@@ -95,15 +95,19 @@ def _extract_date_tuples(date):
     
 def pre_process_story(entry, encoding):
     # Do not switch to published_parsed or every story will be dated the fetch time
-    publish_date = entry.get('g_parsed') or entry.get('updated_parsed') 
-    if publish_date:
-        publish_date = datetime.datetime(*publish_date[:6])
-    if not publish_date and entry.get('published'):
+    # Changed from the original NewsBlur code that preferred parse date to pubdate in the feed
+    publish_date = None
+    if entry.get('published'):
         try:
             publish_date = dateutil.parser.parse(entry.get('published')).replace(tzinfo=None)
         except (ValueError, TypeError, OverflowError):
             pass
-    
+
+    if not publish_date:
+        publish_date = entry.get('g_parsed') or entry.get('updated_parsed')
+        if publish_date:
+            publish_date = datetime.datetime(*publish_date[:6])
+
     if publish_date:
         entry['published'] = publish_date
     else:
@@ -116,7 +120,7 @@ def pre_process_story(entry, encoding):
     # if entry['published'] > datetime.datetime.now() + datetime.timedelta(days=1):
     if entry['published'] > datetime.datetime.now():
         entry['published'] = datetime.datetime.now() + datetime.timedelta(seconds=randint(0, 59))
-    
+
     # entry_link = entry.get('link') or ''
     # protocol_index = entry_link.find("://")
     # if protocol_index != -1:
