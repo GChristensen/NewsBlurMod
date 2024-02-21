@@ -160,7 +160,9 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
             <div class="NB-storytitles-feed-border-outer"></div>\
             <% if (story.image_url()) { %>\
                 <div class="NB-storytitles-story-image-container">\
+                  <a href="<%= story.get("story_permalink") %>">\
                     <div class="NB-storytitles-story-image" <% if (story.image_url()) { %>style="background-image: none, url(\'<%= story.image_url() %>\'); display: block;"<% } %>></div>\
+                  </a>\
                 </div>\
             <% } %>\
             <div class="NB-storytitles-content">\
