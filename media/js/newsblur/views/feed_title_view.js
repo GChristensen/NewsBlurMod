@@ -8,7 +8,7 @@ NEWSBLUR.Views.FeedTitleView = Backbone.View.extend({
     flags: {},
     
     events: {
-        "dblclick .feed_counts"                     : "dblclick_mark_feed_as_read",
+        "click .feed_counts"                     : "dblclick_mark_feed_as_read",
         "dblclick"                                  : "open_feed_link",
         "click .NB-feedbar-mark-feed-read"          : "mark_feed_as_read",
         "click .NB-feedbar-mark-feed-read-time"     : "mark_feed_as_read_days",
