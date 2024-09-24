@@ -117,12 +117,14 @@
     }
     
     NSString *theme = [ThemeManager themeManager].theme;
-    if ([theme isEqualToString:@"sepia"]) {
+    if ([theme isEqualToString:@"light"]) {
         self.themeSegment.selectedSegmentIndex = 1;
-    } else if ([theme isEqualToString:@"medium"]) {
+    } else if ([theme isEqualToString:@"sepia"]) {
         self.themeSegment.selectedSegmentIndex = 2;
-    } else if ([theme isEqualToString:@"dark"]) {
+    } else if ([theme isEqualToString:@"medium"]) {
         self.themeSegment.selectedSegmentIndex = 3;
+    } else if ([theme isEqualToString:@"dark"]) {
+        self.themeSegment.selectedSegmentIndex = 4;
     } else {
         self.themeSegment.selectedSegmentIndex = 0;
     }
@@ -241,15 +243,18 @@
 
 - (IBAction)changeTheme:(id)sender {
     NSUserDefaults *userPreferences = [NSUserDefaults standardUserDefaults];
-    NSString *theme = ThemeStyleLight;
+    NSString *theme = ThemeStyleAuto;
     switch ([sender selectedSegmentIndex]) {
         case 1:
-            theme = ThemeStyleSepia;
+            theme = ThemeStyleLight;
             break;
         case 2:
-            theme = ThemeStyleMedium;
+            theme = ThemeStyleSepia;
             break;
         case 3:
+            theme = ThemeStyleMedium;
+            break;
+        case 4:
             theme = ThemeStyleDark;
             break;
             
@@ -439,7 +444,9 @@
     [self.fontSizeSegment setTitle:@"M" forSegmentAtIndex:2];
     [self.fontSizeSegment setTitle:@"L" forSegmentAtIndex:3];
     [self.fontSizeSegment setTitle:@"XL" forSegmentAtIndex:4];
+#if !TARGET_OS_MACCATALYST
     self.fontSizeSegment.backgroundColor = UIColorFromRGB(0xeeeeee);
+#endif
     [self.fontSizeSegment setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"WhitneySSm-Medium" size:12.0f]} forState:UIControlStateNormal];
     [self.fontSizeSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:0];
     [self.fontSizeSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:1];
@@ -467,7 +474,9 @@
     [self.lineSpacingSegment setImage:[UIImage imageNamed:@"line_spacing_m"] forSegmentAtIndex:2];
     [self.lineSpacingSegment setImage:[UIImage imageNamed:@"line_spacing_l"] forSegmentAtIndex:3];
     [self.lineSpacingSegment setImage:[UIImage imageNamed:@"line_spacing_xl"] forSegmentAtIndex:4];
+#if !TARGET_OS_MACCATALYST
     self.lineSpacingSegment.backgroundColor = UIColorFromRGB(0xeeeeee);
+#endif
     
     [[ThemeManager themeManager] updateSegmentedControl:self.lineSpacingSegment];
     
@@ -486,7 +495,9 @@
     self.fullscreenSegment.frame = CGRectMake(8, 7, cell.frame.size.width - 8*2, kMenuOptionHeight - 7*2);
     [self.fullscreenSegment setTitle:@"Full Screen" forSegmentAtIndex:0];
     [self.fullscreenSegment setTitle:@"Toolbar" forSegmentAtIndex:1];
+#if !TARGET_OS_MACCATALYST
     self.fullscreenSegment.backgroundColor = UIColorFromRGB(0xeeeeee);
+#endif
     [self.fullscreenSegment setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"WhitneySSm-Medium" size:12.0f]} forState:UIControlStateNormal];
     [self.fullscreenSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:0];
     [self.fullscreenSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:1];
@@ -508,7 +519,9 @@
     self.autoscrollSegment.frame = CGRectMake(8, 7, cell.frame.size.width - 8*2, kMenuOptionHeight - 7*2);
     [self.autoscrollSegment setTitle:@"Manual scroll" forSegmentAtIndex:0];
     [self.autoscrollSegment setTitle:@"Auto scroll" forSegmentAtIndex:1];
+#if !TARGET_OS_MACCATALYST
     self.autoscrollSegment.backgroundColor = UIColorFromRGB(0xeeeeee);
+#endif
     [self.autoscrollSegment setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"WhitneySSm-Medium" size:12.0f]} forState:UIControlStateNormal];
     [self.autoscrollSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:0];
     [self.autoscrollSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:1];
@@ -530,7 +543,9 @@
     self.scrollOrientationSegment.frame = CGRectMake(8, 7, cell.frame.size.width - 8*2, kMenuOptionHeight - 7*2);
     [self.scrollOrientationSegment setTitle:@"⏩ Horizontal" forSegmentAtIndex:0];
     [self.scrollOrientationSegment setTitle:@"⏬ Vertical" forSegmentAtIndex:1];
+#if !TARGET_OS_MACCATALYST
     self.scrollOrientationSegment.backgroundColor = UIColorFromRGB(0xeeeeee);
+#endif
     [self.scrollOrientationSegment setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"WhitneySSm-Medium" size:12.0f]} forState:UIControlStateNormal];
     [self.scrollOrientationSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:0];
     [self.scrollOrientationSegment setContentOffset:CGSizeMake(0, 1) forSegmentAtIndex:1];
@@ -549,16 +564,17 @@
     cell.separatorInset = UIEdgeInsetsZero;
     cell.backgroundColor = UIColorFromRGB(0xffffff);
     
-    UIImage *lightImage = [self themeImageWithName:@"theme_color_light" selected:self.themeSegment.selectedSegmentIndex == 0];
-    UIImage *sepiaImage = [self themeImageWithName:@"theme_color_sepia" selected:self.themeSegment.selectedSegmentIndex == 1];
-    UIImage *mediumImage = [self themeImageWithName:@"theme_color_medium" selected:self.themeSegment.selectedSegmentIndex == 2];
-    UIImage *darkImage = [self themeImageWithName:@"theme_color_dark" selected:self.themeSegment.selectedSegmentIndex == 3];
+    UIImage *lightImage = [self themeImageWithName:@"theme_color_light" selected:self.themeSegment.selectedSegmentIndex == 1];
+    UIImage *sepiaImage = [self themeImageWithName:@"theme_color_sepia" selected:self.themeSegment.selectedSegmentIndex == 2];
+    UIImage *mediumImage = [self themeImageWithName:@"theme_color_medium" selected:self.themeSegment.selectedSegmentIndex == 3];
+    UIImage *darkImage = [self themeImageWithName:@"theme_color_dark" selected:self.themeSegment.selectedSegmentIndex == 4];
     
     self.themeSegment.frame = CGRectMake(8, 4, cell.frame.size.width - 8*2, kMenuOptionHeight - 4*2);
-    [self.themeSegment setImage:lightImage forSegmentAtIndex:0];
-    [self.themeSegment setImage:sepiaImage forSegmentAtIndex:1];
-    [self.themeSegment setImage:mediumImage forSegmentAtIndex:2];
-    [self.themeSegment setImage:darkImage forSegmentAtIndex:3];
+    [self.themeSegment setTitle:@"Auto" forSegmentAtIndex:0];
+    [self.themeSegment setImage:lightImage forSegmentAtIndex:1];
+    [self.themeSegment setImage:sepiaImage forSegmentAtIndex:2];
+    [self.themeSegment setImage:mediumImage forSegmentAtIndex:3];
+    [self.themeSegment setImage:darkImage forSegmentAtIndex:4];
     
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(1, self.themeSegment.frame.size.height), NO, 0.0);
     UIImage *blankImage = UIGraphicsGetImageFromCurrentImageContext();
@@ -566,7 +582,9 @@
     
     [self.themeSegment setDividerImage:blankImage forLeftSegmentState:UIControlStateNormal rightSegmentState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     self.themeSegment.tintColor = [UIColor clearColor];
+#if !TARGET_OS_MACCATALYST
     self.themeSegment.backgroundColor = [UIColor clearColor];
+#endif
     
     [[ThemeManager themeManager] updateThemeSegmentedControl:self.themeSegment];
     
@@ -580,7 +598,14 @@
         name = [name stringByAppendingString:@"-sel"];
     }
     
-    return [[UIImage imageNamed:name] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    UIImage *image = [[UIImage imageNamed:name] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomMac) {
+        image = [Utilities imageWithImage:image convertToSize:CGSizeMake(20.0, 20.0)];
+        image = [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    }
+    
+    return image;
 }
 
 @end

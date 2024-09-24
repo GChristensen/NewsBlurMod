@@ -1,8 +1,9 @@
-import os
-import psutil
 import math
+import os
 
-GIGS_OF_MEMORY = psutil.virtual_memory().total/1024/1024/1024.
+import psutil
+
+GIGS_OF_MEMORY = psutil.virtual_memory().total / 1024 / 1024 / 1024.0
 NUM_CPUS = psutil.cpu_count()
 
 bind = "0.0.0.0:8000"
@@ -23,15 +24,15 @@ reload = True
 
 workers = max(int(math.floor(GIGS_OF_MEMORY * 2)), 3)
 
-if workers > 4:
-    workers = 4
+if workers > 16:
+    workers = 16
 
-if os.environ.get('DOCKERBUILD', False):
+if os.environ.get("DOCKERBUILD", False):
     workers = 2
 
-prom_folder = '/srv/newsblur/.prom_cache'
+prom_folder = "/srv/newsblur/.prom_cache"
 os.makedirs(prom_folder, exist_ok=True)
-os.environ['PROMETHEUS_MULTIPROC_DIR'] = prom_folder
+os.environ["PROMETHEUS_MULTIPROC_DIR"] = prom_folder
 for filename in os.listdir(prom_folder):
     file_path = os.path.join(prom_folder, filename)
     try:
@@ -40,9 +41,10 @@ for filename in os.listdir(prom_folder):
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
     except Exception as e:
-        print('Failed to delete %s. Reason: %s' % (file_path, e))
+        print("Failed to delete %s. Reason: %s" % (file_path, e))
 
 from prometheus_client import multiprocess
+
 
 def child_exit(server, worker):
     multiprocess.mark_process_dead(worker.pid)

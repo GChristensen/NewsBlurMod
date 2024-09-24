@@ -3,6 +3,8 @@
   when: "'app' in group_names"
 - import_playbook: playbooks/setup_blog.yml
   when: "'blogs' in group_names"
+- import_playbook: playbooks/setup_forum.yml
+  when: "'forum' in group_names"
 - import_playbook: playbooks/setup_www.yml
   when: "'haproxy' in group_names"
 - import_playbook: playbooks/setup_node.yml
@@ -26,4 +28,4 @@
 - import_playbook: playbooks/setup_metrics.yml
   when: "'metrics' in inventory_hostname"
 - import_playbook: playbooks/setup_sentry.yml
-  when: "'sentry' in inventory_hostname"
+  when: "'sentry' in inventory_hostname or 'metrics' in inventory_hostname"

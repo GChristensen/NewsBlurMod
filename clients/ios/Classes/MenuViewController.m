@@ -157,7 +157,14 @@ NSString * const MenuHandler = @"handler";
         name = [name stringByAppendingString:@"-sel"];
     }
     
-    return [[UIImage imageNamed:name] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    UIImage *image = [[UIImage imageNamed:name] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomMac) {
+        image = [Utilities imageWithImage:image convertToSize:CGSizeMake(20.0, 20.0)];
+        image = [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    }
+    
+    return image;
 }
 
 - (UITableViewCell *)makeThemeSegmentedTableCell {
@@ -168,7 +175,7 @@ NSString * const MenuHandler = @"handler";
     cell.backgroundColor = UIColorFromRGB(0xffffff);
     
     NSString *theme = [ThemeManager themeManager].theme;
-    NSArray *values = @[ThemeStyleLight, ThemeStyleSepia, ThemeStyleMedium, ThemeStyleDark];
+    NSArray *values = @[ThemeStyleAuto, ThemeStyleLight, ThemeStyleSepia, ThemeStyleMedium, ThemeStyleDark];
     NSUInteger valueIndex = [values indexOfObject:theme];
     
     if (valueIndex < 0) {
@@ -179,15 +186,18 @@ NSString * const MenuHandler = @"handler";
     
     [segmentedControl addTarget:self action:@selector(changeTheme:) forControlEvents:UIControlEventValueChanged];
     
-    UIImage *lightImage = [self themeImageWithName:@"theme_color_light" selected:valueIndex == 0];
-    UIImage *sepiaImage = [self themeImageWithName:@"theme_color_sepia" selected:valueIndex == 1];
-    UIImage *mediumImage = [self themeImageWithName:@"theme_color_medium" selected:valueIndex == 2];
-    UIImage *darkImage = [self themeImageWithName:@"theme_color_dark" selected:valueIndex == 3];
+    UIImage *lightImage = [self themeImageWithName:@"theme_color_light" selected:valueIndex == 1];
+    UIImage *sepiaImage = [self themeImageWithName:@"theme_color_sepia" selected:valueIndex == 2];
+    UIImage *mediumImage = [self themeImageWithName:@"theme_color_medium" selected:valueIndex == 3];
+    UIImage *darkImage = [self themeImageWithName:@"theme_color_dark" selected:valueIndex == 4];
     
-    [segmentedControl insertSegmentWithImage:lightImage atIndex:0 animated: NO];
-    [segmentedControl insertSegmentWithImage:sepiaImage atIndex:1 animated: NO];
-    [segmentedControl insertSegmentWithImage:mediumImage atIndex:2 animated: NO];
-    [segmentedControl insertSegmentWithImage:darkImage atIndex:3 animated: NO];
+    [segmentedControl insertSegmentWithTitle:@"Auto" atIndex:0 animated:NO];
+    [segmentedControl insertSegmentWithImage:lightImage atIndex:1 animated: NO];
+    [segmentedControl insertSegmentWithImage:sepiaImage atIndex:2 animated: NO];
+    [segmentedControl insertSegmentWithImage:mediumImage atIndex:3 animated: NO];
+    [segmentedControl insertSegmentWithImage:darkImage atIndex:4 animated: NO];
+    
+    [segmentedControl setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"WhitneySSm-Medium" size:12.0]} forState:UIControlStateNormal];
     
     [[ThemeManager themeManager] updateThemeSegmentedControl:segmentedControl];
     
@@ -197,7 +207,9 @@ NSString * const MenuHandler = @"handler";
     
     [segmentedControl setDividerImage:blankImage forLeftSegmentState:UIControlStateNormal rightSegmentState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     segmentedControl.tintColor = [UIColor clearColor];
+#if !TARGET_OS_MACCATALYST
     segmentedControl.backgroundColor = [UIColor clearColor];
+#endif
     
     segmentedControl.selectedSegmentIndex = valueIndex;
     
@@ -207,7 +219,7 @@ NSString * const MenuHandler = @"handler";
 }
 
 - (IBAction)changeTheme:(UISegmentedControl *)sender {
-    NSArray *values = @[ThemeStyleLight, ThemeStyleSepia, ThemeStyleMedium, ThemeStyleDark];
+    NSArray *values = @[ThemeStyleAuto, ThemeStyleLight, ThemeStyleSepia, ThemeStyleMedium, ThemeStyleDark];
     
     [ThemeManager themeManager].theme = [values objectAtIndex:sender.selectedSegmentIndex];
     
@@ -243,7 +255,9 @@ NSString * const MenuHandler = @"handler";
     segmentedControl.apportionsSegmentWidthsByContent = YES;
     segmentedControl.selectedSegmentIndex = [item[MenuSegmentIndex] integerValue];
     segmentedControl.tag = row;
+#if !TARGET_OS_MACCATALYST
     segmentedControl.backgroundColor = UIColorFromRGB(0xeeeeee);
+#endif
     [segmentedControl setTitleTextAttributes:@{NSFontAttributeName : [UIFont fontWithName:@"WhitneySSm-Medium" size:12.0]} forState:UIControlStateNormal];
     [segmentedControl addTarget:self action:@selector(segmentedValueChanged:) forControlEvents:UIControlEventValueChanged];
     
@@ -277,6 +291,10 @@ NSString * const MenuHandler = @"handler";
 }
 
 - (void)showFromNavigationController:(UINavigationController *)navigationController barButtonItem:(UIBarButtonItem *)barButtonItem permittedArrowDirections:(UIPopoverArrowDirection)permittedArrowDirections {
+    [self showFromNavigationController:navigationController barButtonItem:barButtonItem sourceView:nil sourceRect:CGRectZero permittedArrowDirections:permittedArrowDirections];
+}
+
+- (void)showFromNavigationController:(UINavigationController *)navigationController barButtonItem:(UIBarButtonItem *)barButtonItem sourceView:(UIView *)sourceView sourceRect:(CGRect)sourceRect permittedArrowDirections:(UIPopoverArrowDirection)permittedArrowDirections {
     UIViewController *presentedViewController = navigationController.presentedViewController;
     if (presentedViewController && presentedViewController.presentationController.presentationStyle == UIModalPresentationPopover) {
         [presentedViewController dismissViewControllerAnimated:YES completion:nil];
@@ -293,6 +311,8 @@ NSString * const MenuHandler = @"handler";
     popoverPresentationController.backgroundColor = UIColorFromRGB(NEWSBLUR_WHITE_COLOR);
     popoverPresentationController.permittedArrowDirections = permittedArrowDirections;
     popoverPresentationController.barButtonItem = barButtonItem;
+    popoverPresentationController.sourceView = sourceView;
+    popoverPresentationController.sourceRect = sourceRect;
     
     [navigationController presentViewController:embeddedNavController animated:YES completion:nil];
 }
