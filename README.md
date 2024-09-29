@@ -42,7 +42,7 @@ newgrp docker
 sudo systemctl restart docker
 ```
 * Clone the repo in the home directory of your WSL distribution with the following 
-* command: `git clone https://github.com/GChristensen/NewsBlurMod`
+command: `git clone https://github.com/GChristensen/NewsBlurMod`
 * Change to the `NewsBlurMod` directory and execute the following commands to configure directory access:
 ```
    mkdir ./docker/volumens/elasticsearch
