@@ -45,15 +45,15 @@ sudo systemctl restart docker
 command: `git clone https://github.com/GChristensen/NewsBlurMod`
 * Change to the `NewsBlurMod` directory and execute the following commands to configure directory access:
 ```
-   mkdir ./docker/volumens/elasticsearch
-   sudo chmod 777 ./docker/volumens/elasticsearch
-   mkdir ./docker/volumens/elasticsearch
+   mkdir -p ./docker/volumes/elasticsearch
+   sudo chmod 777 ./docker/volumes/elasticsearch
+   mkdir -p ./docker/volumes/db_mongo
    sudo chmod 777 ./docker/volumes/db_mongo
 ```
 If db_mongo or elasticsearch containers fail to start, it is also worth to try:
 ```
-sudo chown -R 999:1000 ./docker/volumens/elasticsearch
-sudo chown -R 999:1000 ./docker/volumens/db_mongo
+sudo chown -R 999:1000 ./docker/volumes/elasticsearch
+sudo chown -R 999:1000 ./docker/volumes/db_mongo
 ```
 * Issue the following command to build NewsBlur: `sudo make nb -f Makefile.unix`
 Restart Windows after the build is finished.
