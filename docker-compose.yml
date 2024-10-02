@@ -31,6 +31,8 @@ services:
     entrypoint: /bin/sh -c newsblur_web/entrypoint.sh
     volumes: 
       - ${PWD}:/srv/newsblur
+    extra_hosts:
+      - "feeds:${CURRENT_HOST_IP}"
 
   newsblur_node:
     container_name: node
@@ -63,6 +65,8 @@ services:
       - 8088:8088
     volumes:
       - /tmp:/tmp/imageproxy
+    extra_hosts:
+      - "feeds:${CURRENT_HOST_IP}"
   
   nginx:
     container_name: nginx
@@ -82,6 +86,8 @@ services:
     volumes:
       - ./docker/nginx/nginx.local.conf:/etc/nginx/conf.d/nginx.conf
       - ${PWD}:/srv/newsblur
+    extra_hosts:
+      - "feeds:${CURRENT_HOST_IP}"
 
   db_postgres:
     container_name: db_postgres
@@ -155,6 +161,8 @@ services:
       - ${PWD}:/srv/newsblur
     environment: 
       - DOCKERBUILD=True
+    extra_hosts:
+      - "feeds:${CURRENT_HOST_IP}"
 
   haproxy:
     container_name: haproxy
@@ -176,3 +184,5 @@ services:
     volumes:
       - ./docker/haproxy/haproxy.docker-compose.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - ${PWD}:/srv/newsblur
+    extra_hosts:
+      - "feeds:${CURRENT_HOST_IP}"

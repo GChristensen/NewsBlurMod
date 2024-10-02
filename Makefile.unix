@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
+CURRENT_HOST_IP := $(shell hostname -I | awk '{print $$1}')
+export CURRENT_HOST_IP
 
 SERVER_WAIT_DELAY := 30
 
