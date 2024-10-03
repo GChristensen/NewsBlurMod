@@ -5,7 +5,7 @@ from django.db import migrations
 
 
 def remove_mongo_types(apps, schema_editor):
-    db = settings.MONGODB.newsblur_dev
+    db = settings.MONGODB.newsblur
     collections = db.collection_names()
     for collection_name in collections:
         collection = db[collection_name]

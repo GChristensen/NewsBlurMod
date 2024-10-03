@@ -11,9 +11,9 @@ ADMINS                = (
 
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
-NEWSBLUR_URL          = 'https://newsblur_dev'
-PUSH_DOMAIN           = 'newsblur_dev'
-SESSION_COOKIE_DOMAIN = 'newsblur_dev'
+NEWSBLUR_URL          = 'https://newsblur'
+PUSH_DOMAIN           = 'newsblur'
+SESSION_COOKIE_DOMAIN = 'newsblur'
 
 # ===================
 # = Global Settings =
