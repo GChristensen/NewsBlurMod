@@ -8,9 +8,19 @@ SERVER_WAIT_DELAY := 30
 
 .PHONY: node
 
-nb: pull bounce migrate bootstrap collectstatic
+nb: mkvolumes pull bounce migrate bootstrap collectstatic mkvolumes
 
 provided: bounce migrate bootstrap collectstatic
+
+mkvolumes:
+	mkdir -p ./docker/volumes/elasticsearch
+	cd docker; sudo chmod -R 777 ./volumes/elasticsearch
+	sudo chown -R $(shell id -u):$(shell id -g) ./docker/volumes/elasticsearch
+	mkdir -p ./docker/volumes/db_mongo
+	cd docker; sudo chmod -R 777 ./volumes/db_mongo
+	sudo chown -R $(shell id -u):$(shell id -g) ./docker/volumes/db_mongo
+	cd docker; sudo chmod -R 777 ./volumes
+	sudo chown -R $(shell id -u):$(shell id -g) ./docker/volumes
 
 metrics:
 	RUNWITHMAKEBUILD=True CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker compose -f docker-compose.yml -f docker-compose.metrics.yml up -d

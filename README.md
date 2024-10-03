@@ -43,19 +43,10 @@ sudo systemctl restart docker
 ```
 * Clone the repo in the home directory of your WSL distribution with the following 
 command: `git clone https://github.com/GChristensen/NewsBlurMod`
-* Change to the `NewsBlurMod` directory and execute the following commands to configure directory access:
-```
-   mkdir -p ./docker/volumes/elasticsearch
-   sudo chmod 777 ./docker/volumes/elasticsearch
-   mkdir -p ./docker/volumes/db_mongo
-   sudo chmod 777 ./docker/volumes/db_mongo
-```
-If db_mongo or elasticsearch containers fail to start, it is also worth to try:
-```
-sudo chown -R 999:1000 ./docker/volumes/elasticsearch
-sudo chown -R 999:1000 ./docker/volumes/db_mongo
-```
-* Issue the following command to build NewsBlur: `sudo make nb -f Makefile.unix`
+* Issue the following command to build NewsBlur: 
+
+ `sudo make nb -f Makefile.unix`
+
 Restart Windows after the build is finished.
 
 ### Running under Docker Desktop
@@ -95,7 +86,7 @@ If you are deploying it on another machine, put the IP address of that machine i
   make shell
   
   u = User.objects.get(username='YOUR_USERNAME')
-  u.profile.activate_premium()
+  u.profile.activate_premium(True)
   u.profile.activate_archive(True)
   u.profile.activate_pro(True)
 ```
