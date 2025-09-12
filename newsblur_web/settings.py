@@ -531,6 +531,10 @@ MONGO_ANALYTICS_DB = {
     "name": "nbanalytics",
 }
 
+ELASTICSEARCH_FEED_HOST = "http://db-elasticsearch.service.nyc1.consul:9200"
+ELASTICSEARCH_STORY_HOST = "http://db-elasticsearch.service.nyc1.consul:9200"
+ELASTICSEARCH_DISCOVER_HOST = "http://db-elasticsearch-v8.service.nyc1.consul:9208"
+
 # ====================
 # = Database Routers =
 # ====================
