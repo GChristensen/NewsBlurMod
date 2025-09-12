@@ -198,7 +198,7 @@ services:
       - db_mongo
     ports:
       #- 80:80
-      - "${NEWSBLURMOD_HTTPS_PORT}:443"
+      - "${NEWSBLURMOD_HTTPS_PORT:-443}:443"
       #- 1936:1936
     volumes:
       - ./docker/haproxy/haproxy.docker-compose.cfg:/usr/local/etc/haproxy/haproxy.cfg
