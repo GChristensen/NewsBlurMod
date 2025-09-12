@@ -9,11 +9,13 @@ ADMINS                = (
     ('Samuel Clay', 'samuel@newsblur.com'),
 )
 
+NEWSBLURMOD_HTTPS_PORT = os.getenv("NEWSBLURMOD_HTTPS_PORT")
+
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
-NEWSBLUR_URL          = 'https://newsblur'
-PUSH_DOMAIN           = 'newsblur'
-SESSION_COOKIE_DOMAIN = 'newsblur'
+NEWSBLUR_URL          = 'https://newsblur' + f":{NEWSBLURMOD_HTTPS_PORT}" if NEWSBLURMOD_HTTPS_PORT else ""
+PUSH_DOMAIN           = 'newsblur' + f":{NEWSBLURMOD_HTTPS_PORT}" if NEWSBLURMOD_HTTPS_PORT else ""
+SESSION_COOKIE_DOMAIN = 'newsblur' + f":{NEWSBLURMOD_HTTPS_PORT}" if NEWSBLURMOD_HTTPS_PORT else ""
 
 # ===================
 # = Global Settings =

@@ -197,9 +197,9 @@ services:
       - db_elasticsearch
       - db_mongo
     ports:
-      - 80:80
-      - 443:443
-      - 1936:1936
+      #- 80:80
+      - "${NEWSBLURMOD_HTTPS_PORT}:443"
+      #- 1936:1936
     volumes:
       - ./docker/haproxy/haproxy.docker-compose.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - ${PWD}:/srv/newsblur

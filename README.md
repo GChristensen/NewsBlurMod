@@ -12,12 +12,17 @@ Docker under Windows.
 * Enlarged preview images in the grid mode, changed content position of the images 
   to "contain" instead of "fill".
 * New dark theme.
+* The discovery dropdown is hidden.
 * Single click on unread count to mark as read.
 * Websub is enabled by default, throttling of websub pushes is turned off, subscription lease
   is infinite, so NewsBlurMod could seamlessly be used with [Feedxcavator](https://github.com/GChristensen/feedxcavator).
 * Disabled Prometheus middleware.
 
 ## Installation Instructions
+
+### Running under Linux (recommended)
+
+Clone the repo and use the Makefile.unix to install NewsBlurMod: `sudo make -f Makefile.unix nb`
 
 ### Running under Docker Engine inside WSL2
 * Enable 'Virtual Machine Platform' and 'WSL2' Windows system components.
