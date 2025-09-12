@@ -5320,7 +5320,7 @@
                 var local = false && _.any(['nb.local.com'], function (hostname) {
                     return _.string.contains(window.location.host, hostname);
                 });
-                var port = https ? 443 : 80;
+                var port = location.port || (https ? 443 : 80);
                 if (local) {
                     port = https ? 8889 : 8888;
                 }
