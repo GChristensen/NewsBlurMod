@@ -1,6 +1,4 @@
-version: '2'
 services:
-
   newsblur_web:
     hostname: nb.com
     container_name: newsblur_web
@@ -29,7 +27,7 @@ services:
       - 8000:8000
     # only use gunicorn if the TEST env variable is not "True"
     entrypoint: /bin/sh -c newsblur_web/entrypoint.sh
-    volumes: 
+    volumes:
       - ${PWD}:/srv/newsblur
     extra_hosts:
       - "feeds:${CURRENT_HOST_IP}"
@@ -44,16 +42,16 @@ services:
     command: node newsblur.js
     restart: unless-stopped
     stop_signal: HUP
-    depends_on: 
+    depends_on:
       - db_mongo
       - db_postgres
       - db_redis
     ports:
       - 8008:8008
-    volumes: 
+    volumes:
       - ${PWD}/node:/srv
       - ${PWD}/node/originals:/srv/originals
-  
+
   imageproxy:
     container_name: imageproxy
     image: ghcr.io/willnorris/imageproxy:latest # Enable if you don't need arm64 and want the original imageproxy
@@ -67,7 +65,7 @@ services:
       - /tmp:/tmp/imageproxy
     extra_hosts:
       - "feeds:${CURRENT_HOST_IP}"
-  
+
   nginx:
     container_name: nginx
     image: nginx:1.19.6
@@ -81,7 +79,7 @@ services:
       - db_redis
       - db_mongo
       - db_elasticsearch
-    environment: 
+    environment:
       - DOCKERBUILD=True
     volumes:
       - ./docker/nginx/nginx.local.conf:/etc/nginx/conf.d/nginx.conf
@@ -118,13 +116,33 @@ services:
       - ./docker/volumes/redis:/data
     command: redis-server /etc/redis/redis.conf --port 6579
 
+  # Prod Redis
+  # db_redis:
+  #   container_name: db_redis
+  #   image: redis:latest
+  #   ports:
+  #     - 6579:6579
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./docker/redis/redis.conf:/etc/redis/redis.conf
+  #     - ./docker/redis/redis_server.conf:/usr/local/etc/redis/redis_replica.conf
+  #     - ./docker/volumes/redis_prod:/data
+  #   command: redis-server /etc/redis/redis.conf --port 6579
+
   db_elasticsearch:
     container_name: db_elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.26
-    mem_limit: 512mb
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    mem_limit: 1200m
+    mem_reservation: 512m
     restart: unless-stopped
     environment:
       - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms384m -Xmx384m -XX:UseSVE=0"
+      - "CLI_JAVA_OPTS=-XX:UseSVE=0"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=false
+      - indices.breaker.total.use_real_memory=false
     ports:
       - 9200:9200
       - 9300:9300
@@ -132,6 +150,7 @@ services:
       - ./docker/volumes/elasticsearch:/usr/share/elasticsearch/data
       - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
+  # Dejavu is a web UI for Elasticsearch
   dejavu:
     container_name: dejavu
     image: appbaseio/dejavu:3.6.0
@@ -139,17 +158,17 @@ services:
     ports:
       - 1358:1358
 
-
   db_mongo:
     container_name: db_mongo
     image: mongo:4.0
-    user: mongodb
     restart: unless-stopped
     ports:
       - 29019:29019
     command: mongod --port 29019 --dbpath /data/db
     volumes:
       - ./docker/volumes/db_mongo:/data/db
+    # Ensure the MongoDB data directory has proper permissions
+    user: "${CURRENT_UID}:${CURRENT_GID}"
 
   task_celery:
     container_name: task_celery
@@ -159,7 +178,7 @@ services:
     restart: unless-stopped
     volumes:
       - ${PWD}:/srv/newsblur
-    environment: 
+    environment:
       - DOCKERBUILD=True
     extra_hosts:
       - "feeds:${CURRENT_HOST_IP}"
@@ -168,7 +187,7 @@ services:
     container_name: haproxy
     image: haproxy:latest
     restart: unless-stopped
-    depends_on: 
+    depends_on:
       - nginx
       - newsblur_web
       - newsblur_node

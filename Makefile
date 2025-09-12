@@ -2,14 +2,11 @@
 SHELL := sh
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
-
-SERVER_WAIT_DELAY := 30
+newsblur := $(shell gtimeout 2s docker ps -qf "name=newsblur_web")
 
 .PHONY: node
 
-nb: build_deploy pull bounce migrate bootstrap collectstatic
-
-provided: bounce migrate bootstrap collectstatic
+nb: pull bounce migrate bootstrap collectstatic
 
 metrics:
 	RUNWITHMAKEBUILD=True CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker compose -f docker-compose.yml -f docker-compose.metrics.yml up -d
@@ -35,6 +32,7 @@ coffee:
 migrations:
 	docker exec -it newsblur_web ./manage.py makemigrations
 makemigration: migrations
+makemigrations: migrations
 datamigration:
 	docker exec -it newsblur_web ./manage.py makemigrations --empty $(app)
 migration: migrations
@@ -52,7 +50,8 @@ debug:
 	docker attach ${newsblur}
 log:
 	RUNWITHMAKEBUILD=True docker compose logs -f --tail 20 newsblur_web newsblur_node
-logweb: log
+logweb:
+	RUNWITHMAKEBUILD=True docker compose logs -f --tail 20 newsblur_web newsblur_node task_celery
 logcelery:
 	RUNWITHMAKEBUILD=True docker compose logs -f --tail 20 task_celery
 logtask: logcelery
@@ -73,9 +72,20 @@ down:
 	RUNWITHMAKEBUILD=True docker compose -f docker-compose.yml -f docker-compose.metrics.yml down
 nbdown: down
 jekyll:
-	cd blog && bundle exec jekyll serve
+	cd blog && JEKYLL_ENV=production bundle exec jekyll serve --config _config.yml
 jekyll_drafts:
-	cd blog && bundle exec jekyll serve --drafts
+	cd blog && JEKYLL_ENV=production bundle exec jekyll serve --drafts --config _config.yml
+lint:
+	docker exec -it newsblur_web isort --profile black .
+	docker exec -it newsblur_web black --line-length 110 .
+	docker exec -it newsblur_web flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv
+
+deps:
+	docker exec -t newsblur_web pip install -U uv
+	docker exec -t newsblur_web uv pip install -r requirements.txt
+
+jekyll_build:
+	cd blog && JEKYLL_ENV=production bundle exec jekyll build
 
 # runs tests
 test:
@@ -83,14 +93,14 @@ test:
 	RUNWITHMAKEBUILD=True CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker compose exec newsblur_web bash -c "NOSE_EXCLUDE_DIRS=./vendor DJANGO_SETTINGS_MODULE=newsblur_web.test_settings python3 manage.py test -v 3 --failfast"
 
 keys:
-	mkdir config/certificates
+	mkdir -p config/certificates
 	openssl dhparam -out config/certificates/dhparam-2048.pem 2048
-	MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout config/certificates/RootCA.key -out config/certificates/RootCA.pem -subj "/C=US/CN=Example-Root-CA"
-	MSYS_NO_PATHCONV=1 openssl x509 -outform pem -in config/certificates/RootCA.pem -out config/certificates/RootCA.crt
-	MSYS_NO_PATHCONV=1 openssl req -new -nodes -newkey rsa:2048 -keyout config/certificates/localhost.key -out config/certificates/localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost"
-	MSYS_NO_PATHCONV=1 openssl x509 -req -sha256 -days 1024 -in config/certificates/localhost.csr -CA config/certificates/RootCA.pem -CAkey config/certificates/RootCA.key -CAcreateserial -out config/certificates/localhost.crt
-	MSYS_NO_PATHCONV=1 cat config/certificates/localhost.crt config/certificates/localhost.key > config/certificates/localhost.pem
-#	sudo /usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./config/certificates/RootCA.crt
+	openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout config/certificates/RootCA.key -out config/certificates/RootCA.pem -subj "/C=US/CN=Example-Root-CA"
+	openssl x509 -outform pem -in config/certificates/RootCA.pem -out config/certificates/RootCA.crt
+	openssl req -new -nodes -newkey rsa:2048 -keyout config/certificates/localhost.key -out config/certificates/localhost.csr -subj "/C=US/ST=YourState/L=YourCity/O=Example-Certificates/CN=localhost"
+	openssl x509 -req -sha256 -days 1024 -in config/certificates/localhost.csr -CA config/certificates/RootCA.pem -CAkey config/certificates/RootCA.key -CAcreateserial -out config/certificates/localhost.crt
+	cat config/certificates/localhost.crt config/certificates/localhost.key > config/certificates/localhost.pem
+	sudo /usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./config/certificates/RootCA.crt
 
 # Doesn't work yet
 mkcert:
@@ -181,6 +191,9 @@ monitor: deploy_monitor
 deploy_staging:
 	ansible-playbook ansible/deploy.yml -l staging
 staging: deploy_staging
+deploy_staging_static: staging_static
+staging_static:
+	ansible-playbook ansible/deploy.yml -l staging --tags static
 celery_stop:
 	ansible-playbook ansible/deploy.yml -l task --tags stop
 sentry:
@@ -205,6 +218,11 @@ mongodump:
 mongorestore:
 	cp -fr docker/volumes/mongodump docker/volumes/db_mongo/
 	docker exec -it db_mongo mongorestore --port 29019 -d newsblur /data/db/mongodump/newsblur
+pgrestore:
+	docker exec -it db_postgres bash -c "psql -U newsblur -c 'CREATE DATABASE newsblur_prod;'; pg_restore -U newsblur --role=newsblur --dbname=newsblur_prod /var/lib/postgresql/data/backup_postgresql_2023-10-10-04-00.sql.sql"
+redisrestore:
+	docker exec -it db_redis bash -c "redis-cli -p 6579 --pipe < /data/backup_db_redis_user_2023-10-21-04-00.rdb.gz"
+	docker exec -it db_redis bash -c "redis-cli -p 6579 --pipe < /data/backup_db_redis_story2_2023-10-21-04-00.rdb.gz"
 index_feeds:
 	docker exec -it newsblur_web ./manage.py index_feeds
 index_stories:
@@ -226,4 +244,4 @@ clean:
 
 
 grafana-dashboards:
-	python3 utils/grafana_backup.py
+	uv run python utils/grafana_backup.py

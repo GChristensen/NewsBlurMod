@@ -110,6 +110,15 @@ MAX_EMAILS_SENT_PER_DAY_PER_USER = 20  # Most are story notifications
 # = Django-specific Modules =
 # ===========================
 
+SHELL_PLUS_IMPORTS = [
+    "from apps.search.models import SearchFeed, SearchStory, DiscoverStory",
+    "import redis",
+    "import datetime",
+    "from pprint import pprint",
+    "import requests",
+    "import feedparser",
+]
+# SHELL_PLUS_PRINT_SQL = True
 
 MIDDLEWARE = (
     #'django_prometheus.middleware.PrometheusBeforeMiddleware',
@@ -162,7 +171,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "verbose": {"format": "[%(asctime)-12s] %(message)s", "datefmt": "%b %d %H:%M:%S"},
+        "verbose": {
+            "format": "[%(asctime)-12s] %(message)s",
+            "datefmt": "%b %d %H:%M:%S",
+        },
         "simple": {"format": "%(message)s"},
     },
     "handlers": {
@@ -170,8 +182,16 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.NullHandler",
         },
-        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "verbose"},
-        "vendor.apns": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "verbose"},
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "vendor.apns": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
         "log_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
@@ -365,6 +385,10 @@ CELERY_TASK_ROUTES = {
     "update-feeds": {"queue": "update_feeds", "binding_key": "update_feeds"},
     "beat-tasks": {"queue": "cron_queue", "binding_key": "cron_queue"},
     "search-indexer": {"queue": "search_indexer", "binding_key": "search_indexer"},
+    "discover-indexer": {
+        "queue": "discover_indexer",
+        "binding_key": "discover_indexer",
+    },
 }
 CELERY_TASK_QUEUES = {
     "work_queue": {
@@ -372,10 +396,26 @@ CELERY_TASK_QUEUES = {
         "exchange_type": "direct",
         "binding_key": "work_queue",
     },
-    "new_feeds": {"exchange": "new_feeds", "exchange_type": "direct", "binding_key": "new_feeds"},
-    "push_feeds": {"exchange": "push_feeds", "exchange_type": "direct", "binding_key": "push_feeds"},
-    "update_feeds": {"exchange": "update_feeds", "exchange_type": "direct", "binding_key": "update_feeds"},
-    "cron_queue": {"exchange": "cron_queue", "exchange_type": "direct", "binding_key": "cron_queue"},
+    "new_feeds": {
+        "exchange": "new_feeds",
+        "exchange_type": "direct",
+        "binding_key": "new_feeds",
+    },
+    "push_feeds": {
+        "exchange": "push_feeds",
+        "exchange_type": "direct",
+        "binding_key": "push_feeds",
+    },
+    "update_feeds": {
+        "exchange": "update_feeds",
+        "exchange_type": "direct",
+        "binding_key": "update_feeds",
+    },
+    "cron_queue": {
+        "exchange": "cron_queue",
+        "exchange_type": "direct",
+        "binding_key": "cron_queue",
+    },
     "beat_feeds_task": {
         "exchange": "beat_feeds_task",
         "exchange_type": "direct",
@@ -385,6 +425,11 @@ CELERY_TASK_QUEUES = {
         "exchange": "search_indexer",
         "exchange_type": "direct",
         "binding_key": "search_indexer",
+    },
+    "discover_indexer": {
+        "exchange": "discover_indexer",
+        "exchange_type": "direct",
+        "binding_key": "discover_indexer",
     },
 }
 CELERY_TASK_DEFAULT_QUEUE = "work_queue"
@@ -472,6 +517,7 @@ CELERY_BEAT_SCHEDULE = {
 # =========
 # = Mongo =
 # =========
+
 if DOCKERBUILD:
     MONGO_PORT = 29019
 else:
@@ -523,6 +569,7 @@ FACEBOOK_NAMESPACE = "newsblur"
 TWITTER_CONSUMER_KEY = "ooooooooooooooooooooo"
 TWITTER_CONSUMER_SECRET = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 YOUTUBE_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+SCRAPENINJA_API_KEY = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # ===============
 # = AWS Backing =
@@ -601,6 +648,8 @@ AWS_SECRET_ACCESS_KEY = S3_SECRET
 
 os.environ["AWS_ACCESS_KEY_ID"] = AWS_ACCESS_KEY_ID
 os.environ["AWS_SECRET_ACCESS_KEY"] = AWS_SECRET_ACCESS_KEY
+
+os.environ["HF_HOME"] = "/srv/newsblur/docker/volumes/discover"
 
 
 def clear_prometheus_aggregation_stats():
@@ -716,7 +765,9 @@ if "username" in MONGO_ANALYTICS_DB:
     )
 else:
     MONGOANALYTICSDB = connect(
-        db=MONGO_ANALYTICS_DB["name"], host=f"mongodb://{MONGO_ANALYTICS_DB['host']}/", alias="nbanalytics"
+        db=MONGO_ANALYTICS_DB["name"],
+        host=f"mongodb://{MONGO_ANALYTICS_DB['host']}/",
+        alias="nbanalytics",
     )
 
 
@@ -741,9 +792,18 @@ if REDIS_USER is None:
 
 CELERY_REDIS_DB_NUM = 4
 SESSION_REDIS_DB = 5
-CELERY_BROKER_URL = "redis://%s:%s/%s" % (REDIS_USER["host"], REDIS_USER_PORT, CELERY_REDIS_DB_NUM)
+CELERY_BROKER_URL = "redis://%s:%s/%s" % (
+    REDIS_USER["host"],
+    REDIS_USER_PORT,
+    CELERY_REDIS_DB_NUM,
+)
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
-BROKER_TRANSPORT_OPTIONS = {"max_retries": 3, "interval_start": 0, "interval_step": 0.2, "interval_max": 0.5}
+BROKER_TRANSPORT_OPTIONS = {
+    "max_retries": 3,
+    "interval_start": 0,
+    "interval_step": 0.2,
+    "interval_max": 0.5,
+}
 
 SESSION_REDIS = {
     "host": REDIS_SESSIONS["host"],

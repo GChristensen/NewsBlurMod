@@ -150,16 +150,18 @@ SESSION_REDIS_DB = 5
 
 ELASTICSEARCH_FEED_HOSTS = ["db_elasticsearch:9200"]
 ELASTICSEARCH_STORY_HOSTS = ["db_elasticsearch:9200"]
+ELASTICSEARCH_DISCOVER_HOSTS = ["db_elasticsearch:9200"]
 
 ELASTICSEARCH_FEED_HOST = "http://db_elasticsearch:9200"
 ELASTICSEARCH_STORY_HOST = "http://db_elasticsearch:9200"
-
+ELASTICSEARCH_DISCOVER_HOST = "http://db_elasticsearch:9200"
 BACKED_BY_AWS = {
     'pages_on_node': False,
     'pages_on_s3': False,
     'icons_on_s3': False,
 }
 
+OPENAI_API_KEY = "sk-svcacct-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # ===========
 # = Logging =
@@ -193,3 +195,7 @@ SESSION_ENGINE = 'redis_sessions.session'
 
 RECAPTCHA_SECRET_KEY = "0000000000000000000000000000000000000000"
 IMAGES_SECRET_KEY = "0000000000000000000000000000000"
+
+# APNS settings for token-based authentication
+APNS_TEAM_ID = "XXXXXXXXXX"  # Apple Developer Team ID (10 characters)
+APNS_KEY_ID = "XXXXXXXXXX"   # APNS Key ID (10 characters)
