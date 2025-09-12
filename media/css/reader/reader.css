@@ -5984,7 +5984,6 @@ body {
     border-radius: 2px;
 }
 .NB-feeds-header-enable-sorting,
-.NB-feeds-header-feedxcavator,
 .NB-feeds-header-collapse-sidebar,
 .NB-feeds-header-user-interactions {
     cursor: pointer;
@@ -5999,16 +5998,12 @@ body {
 .NB-feeds-header-enable-sorting {
     right: 64px;
 }
-.NB-feeds-header-feedxcavator {
-    right: 96px;
-}
 .NB-feeds-header-user-interactions {
     padding: 8px 0;
     right: 32px;
 }
 .NB-feeds-header-enable-sorting img,
 .NB-feeds-header-collapse-sidebar img,
-.NB-feeds-header-feedxcavator img,
 .NB-feeds-header-user-interactions img {
     width: 16px;
     height: 16px;
