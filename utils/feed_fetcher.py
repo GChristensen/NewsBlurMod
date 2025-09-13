@@ -142,8 +142,8 @@ def preprocess_feed_encoding(raw_xml):
 # Refresh feed code adapted from Feedjack.
 # http://feedjack.googlecode.com
 
-MAX_ENTRIES_TO_PROCESS = 100
-MAX_ENTRIES_HIGH_VOLUME = 250
+MAX_ENTRIES_TO_PROCESS = 2000
+MAX_ENTRIES_HIGH_VOLUME = 2000
 HIGH_VOLUME_FEED_URLS = ['arxiv.org']  # Feeds that can handle more stories per fetch
 
 FEED_OK, FEED_SAME, FEED_ERRPARSE, FEED_ERRHTTP, FEED_ERREXC = list(range(5))
@@ -536,8 +536,6 @@ class ProcessFeed:
             feed_status, ret_values = self.verify_feed_integrity()
             if feed_status and ret_values:
                 return feed_status, ret_values
-
-            self.fpf.entries = self.fpf.entries[:2000]
 
             # Check for Cache-Control max-age and Retry-After in response headers
             if hasattr(self.fpf, "headers") and self.fpf.headers:
