@@ -10,6 +10,7 @@ services:
     environment: 
       - DOCKERBUILD=True
       - RUNWITHMAKEBUILD=${RUNWITHMAKEBUILD?Use the `make` command instead of docker CLI}
+      - NEWSBLURMOD_HTTPS_PORT="${NEWSBLURMOD_HTTPS_PORT:-443}"
     stdin_open: true
     tty: true
     restart: unless-stopped
