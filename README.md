@@ -13,7 +13,7 @@ Docker under Linux and Windows.
 * Enlarged preview images in the grid mode, changed content position of the images 
   to "contain" instead of "fill".
 * New dark theme.
-* The discovery dropdown is hidden.
+* The discovery dropdown is hidden, the discover feed indexing is disabled.
 * Single click on unread count to mark as read.
 *  NewsBlurMod could seamlessly be used with [Feedxcavator](https://github.com/GChristensen/feedxcavator) because
    Websub is enabled by default, throttling of websub pushes is turned off,  

@@ -242,6 +242,8 @@ def ScheduleCountTagsForUser(user_id):
 
 @app.task()
 def IndexDiscoverStories(story_ids):
-    from apps.rss_feeds.models import MStory
+    # NewsBlurMod: disabled discover indexing
+    pass
+    #from apps.rss_feeds.models import MStory
 
-    MStory.index_stories_for_discover(story_ids)
+    #MStory.index_stories_for_discover(story_ids)
