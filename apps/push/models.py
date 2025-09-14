@@ -43,7 +43,23 @@ class PushSubscriptionManager(models.Manager):
 
         if callback is None:
             callback_path = reverse("push-callback", args=(subscription.pk,))
-            callback = "https://" + settings.PUSH_DOMAIN + callback_path
+
+            # NewsBlurMod: HACK: it seems, in some calling contexts settings.PUSH_DOMAIN may be empty
+            callback_domain = settings.PUSH_DOMAIN
+
+            if not callback_domain:
+                https_port = os.getenv("NEWSBLURMOD_HTTPS_PORT")
+
+                if not https_port:
+                    try:
+                        https_port = dict(line.strip().split('=', 1) for line in open('/srv/newsblur/.env')
+                                          if '=' in line).get('NEWSBLURMOD_HTTPS_PORT')
+                    except Exception as e:
+                        print(e)
+
+                callback_domain = "newsblur" + f":{https_port}" if https_port else ""
+
+            callback = "https://" + callback_domain + callback_path
             # callback = "https://push.newsblur.com/push/%s" % subscription.pk # + callback_path
 
         try:
