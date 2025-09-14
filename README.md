@@ -6,7 +6,6 @@ Docker under Linux and Windows.
 ## Modifications
 * It is possible to self-host this repo under Windows as is. It could be run either 
   directly under Docker Desktop or under Docker Engine inside WSL2.
-* Customizable HTTPS port.
 * Increased the limit of maximum 100 unread stories. The current limit is 2000.
 * Disabled alphabetical sorting of feeds in the sidebar. It is possible to sort feeds using
   drag&drop or through the development JavaScript console.
@@ -21,17 +20,6 @@ Docker under Linux and Windows.
 * Disabled Prometheus middleware.
 
 ## Installation Instructions
-
-### NewsBlur HTTPS Port
-
-The 80 port of the NewsBlur server are disabled. 
-The server is available through the 443 (default HTTPS) prot. 
-To customize the HTTPS port, create a .env file in the repo root
-directory with the following variable before making the app:
-
-```.dotenv
-NEWSBLURMOD_HTTPS_PORT=10443
-```
 
 ### Running under Linux (recommended)
 
