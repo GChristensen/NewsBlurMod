@@ -1,4 +1,5 @@
 import datetime
+import html
 import multiprocessing
 import time
 import traceback
@@ -52,17 +53,98 @@ from sentry_sdk import capture_exception, flush
 from utils import json_functions as json
 from utils import log as logging
 from utils.facebook_fetcher import FacebookFetcher
-from utils.feed_functions import TimeoutError, strip_underscore_from_feed_address, timelimit
+from utils.feed_functions import (
+    TimeoutError,
+    strip_underscore_from_feed_address,
+    timelimit,
+)
 from utils.json_fetcher import JSONFetcher
-from utils.story_functions import linkify, pre_process_story, strip_tags
+from utils.story_functions import (
+    extract_story_date,
+    linkify,
+    pre_process_story,
+    strip_tags,
+)
 from utils.twitter_fetcher import TwitterFetcher
 from utils.youtube_fetcher import YoutubeFetcher
+
+
+def preprocess_feed_encoding(raw_xml):
+    """
+    Fix for The Verge RSS feed encoding issues (and other feeds with similar problems).
+
+    The Verge and other Vox Media sites often serve RSS feeds with special characters
+    that were incorrectly encoded. This happens when UTF-8 bytes are misinterpreted
+    as Latin-1/Windows-1252 characters and then HTML-encoded, resulting in garbled text
+    like "Apple&acirc;&#128;&#153;s" instead of "Apple's" with a smart apostrophe.
+
+    This function detects these patterns and reverses the process by:
+    1. Unescaping the HTML entities (producing characters like â€™)
+    2. Re-encoding as Latin-1 and decoding as UTF-8 to recover the original characters
+
+    Args:
+        raw_xml (str): The raw XML content fetched from the feed
+
+    Returns:
+        str: The corrected XML content with proper encoding
+    """
+    # Common indicators of misencoded UTF-8
+    misencoding_indicators = [
+        # Common UTF-8 double encoded patterns
+        "&acirc;&#128;&#153;",  # Smart apostrophe (')
+        "&acirc;&#128;&#147;",  # Em dash (—)
+        "&acirc;&#128;&#148;",  # En dash (–)
+        "&acirc;&#128;&#156;",  # Opening smart quote (")
+        "&acirc;&#128;&#157;",  # Closing smart quote (")
+        "&acirc;&#128;&#152;",  # Single opening quote (')
+        "&acirc;&#128;&#153;",  # Single closing quote (')
+        "&acirc;&#128;&#166;",  # Ellipsis (…)
+        "&acirc;&#128;&#160;",  # Non-breaking space
+        "&acirc;&#128;&#176;",  # Bullet point (•)
+        "&acirc;&#128;&#174;",  # Registered trademark (®)
+        "&acirc;&#128;&#169;",  # Copyright (©)
+        # Additional patterns that indicate encoding issues
+        "&Atilde;&copy;",  # é misencoded
+        "&Atilde;&reg;",  # ® misencoded
+        "&Atilde;&para;",  # ¶ misencoded
+        "&Atilde;&sup2;",  # ² misencoded
+        "&Atilde;&deg;",  # ° misencoded
+        "&Aring;&frac12;",  # ½ misencoded
+    ]
+
+    # Check if any of the indicators are present
+    needs_fixing = any(indicator in raw_xml for indicator in misencoding_indicators)
+
+    if needs_fixing:
+        try:
+            # Step 1: HTML Unescaping - convert HTML entities to their literal characters
+            # This will typically produce characters like â€™ in place of the intended smart apostrophe
+            unescaped = html.unescape(raw_xml)
+
+            # Step 2: Encoding Reinterpretation
+            # Re-encode as Latin-1/Windows-1252 and decode as UTF-8
+            # This "encoding shuffle" restores the original characters
+            corrected = unescaped.encode("latin1").decode("utf-8", errors="replace")
+
+            return corrected
+        except (UnicodeError, AttributeError) as e:
+            # If there's an error in the encoding correction, log it and return the original
+            logging.debug("Error fixing feed encoding: %s" % str(e))
+            return raw_xml
+
+    # If no indicators are found, return the original XML
+    return raw_xml
+
 
 # from utils.feed_functions import mail_feed_error_to_admin
 
 
 # Refresh feed code adapted from Feedjack.
 # http://feedjack.googlecode.com
+
+MAX_ENTRIES_TO_PROCESS = 2000
+MAX_ENTRIES_HIGH_VOLUME = 2000
+HIGH_VOLUME_FEED_URLS = ['arxiv.org']  # Feeds that can handle more stories per fetch
 
 FEED_OK, FEED_SAME, FEED_ERRPARSE, FEED_ERRHTTP, FEED_ERREXC = list(range(5))
 
@@ -141,7 +223,14 @@ class FetchFeed:
                     "   ***> [%-30s] ~FRYouTube fetch failed: %s." % (self.feed.log_title[:30], address)
                 )
                 return FEED_ERRHTTP, None
-            self.fpf = feedparser.parse(youtube_feed, sanitize_html=False)
+            # Apply encoding preprocessing to special feed content
+            processed_youtube_feed = preprocess_feed_encoding(youtube_feed)
+            if processed_youtube_feed != youtube_feed:
+                logging.debug(
+                    "   ---> [%-30s] ~FGApplied encoding correction to YouTube feed"
+                    % (self.feed.log_title[:30])
+                )
+            self.fpf = feedparser.parse(processed_youtube_feed, sanitize_html=False)
         elif re.match(r"(https?)?://twitter.com/\w+/?", qurl(address, remove=["_"])):
             twitter_feed = self.fetch_twitter(address)
             if not twitter_feed:
@@ -149,7 +238,14 @@ class FetchFeed:
                     "   ***> [%-30s] ~FRTwitter fetch failed: %s" % (self.feed.log_title[:30], address)
                 )
                 return FEED_ERRHTTP, None
-            self.fpf = feedparser.parse(twitter_feed)
+            # Apply encoding preprocessing to special feed content
+            processed_twitter_feed = preprocess_feed_encoding(twitter_feed)
+            if processed_twitter_feed != twitter_feed:
+                logging.debug(
+                    "   ---> [%-30s] ~FGApplied encoding correction to Twitter feed"
+                    % (self.feed.log_title[:30])
+                )
+            self.fpf = feedparser.parse(processed_twitter_feed)
         elif re.match(r"(.*?)facebook.com/\w+/?$", qurl(address, remove=["_"])):
             facebook_feed = self.fetch_facebook()
             if not facebook_feed:
@@ -157,7 +253,42 @@ class FetchFeed:
                     "   ***> [%-30s] ~FRFacebook fetch failed: %s" % (self.feed.log_title[:30], address)
                 )
                 return FEED_ERRHTTP, None
-            self.fpf = feedparser.parse(facebook_feed)
+            # Apply encoding preprocessing to special feed content
+            processed_facebook_feed = preprocess_feed_encoding(facebook_feed)
+            if processed_facebook_feed != facebook_feed:
+                logging.debug(
+                    "   ---> [%-30s] ~FGApplied encoding correction to Facebook feed"
+                    % (self.feed.log_title[:30])
+                )
+            self.fpf = feedparser.parse(processed_facebook_feed)
+        elif self.feed.is_forbidden:
+            # 10% chance to turn off is_forbidden flag before fetching
+            if random.random() <= 0.1:
+                logging.debug(
+                    "   ---> [%-30s] ~FG~SBTurning off forbidden flag (~FB10%%~FG chance) and fetching normally"
+                    % (self.feed.log_title[:30])
+                )
+                self.feed.is_forbidden = False
+                self.feed = self.feed.save()
+                # Skip this branch and continue with normal fetch flow
+                # We don't need to do anything else here - just let the normal fetch flow continue
+            else:
+                # Regular forbidden feed fetch
+                forbidden_feed = self.fetch_forbidden()
+                if not forbidden_feed:
+                    logging.debug(
+                        "   ***> [%-30s] ~FRForbidden feed fetch failed: %s"
+                        % (self.feed.log_title[:30], address)
+                    )
+                    return FEED_ERRHTTP, None
+                # Apply encoding preprocessing to special feed content
+                processed_forbidden_feed = preprocess_feed_encoding(forbidden_feed)
+                if processed_forbidden_feed != forbidden_feed:
+                    logging.debug(
+                        "   ---> [%-30s] ~FGApplied encoding correction to forbidden feed"
+                        % (self.feed.log_title[:30])
+                    )
+                self.fpf = feedparser.parse(processed_forbidden_feed)
 
         if not self.fpf and "json" in address:
             try:
@@ -229,12 +360,26 @@ class FetchFeed:
                             "   ***> [%-30s] ~FRJSON fetch failed: %s" % (self.feed.log_title[:30], address)
                         )
                         return FEED_ERRHTTP, None
-                    self.fpf = feedparser.parse(json_feed)
+                    # Apply encoding preprocessing to JSON feed content
+                    processed_json_feed = preprocess_feed_encoding(json_feed)
+                    if processed_json_feed != json_feed:
+                        logging.debug(
+                            "   ---> [%-30s] ~FGApplied encoding correction to JSON feed"
+                            % (self.feed.log_title[:30])
+                        )
+                    self.fpf = feedparser.parse(processed_json_feed)
                 elif raw_feed.content and raw_feed.status_code < 400:
                     response_headers = raw_feed.headers
                     response_headers["Content-Location"] = raw_feed.url
                     self.raw_feed = smart_str(raw_feed.content)
-                    self.fpf = feedparser.parse(self.raw_feed, response_headers=response_headers)
+                    # Preprocess feed to fix encoding issues before parsing with feedparser
+                    processed_feed = preprocess_feed_encoding(self.raw_feed)
+                    if processed_feed != self.raw_feed:
+                        logging.debug(
+                            "   ---> [%-30s] ~FGApplied encoding correction to feed with misencoded HTML entities"
+                            % (self.feed.log_title[:30])
+                        )
+                    self.fpf = feedparser.parse(processed_feed, response_headers=response_headers)
                     if self.options["verbose"]:
                         logging.debug(
                             " ---> [%-30s] ~FBFeed fetch status %s: %s length / %s"
@@ -254,6 +399,8 @@ class FetchFeed:
 
         if not self.fpf or self.options.get("force_fp", False):
             try:
+                # When feedparser fetches the URL itself, we cannot preprocess the content first
+                # We'll have to rely on feedparser's built-in handling here
                 self.fpf = feedparser.parse(address, agent=self.feed.user_agent, etag=etag, modified=modified)
             except (
                 TypeError,
@@ -276,6 +423,7 @@ class FetchFeed:
                 logging.debug(
                     "   ***> [%-30s] ~FRTurning off headers: %s" % (self.feed.log_title[:30], address)
                 )
+                # Another direct URL fetch that bypasses our preprocessing
                 self.fpf = feedparser.parse(address, agent=self.feed.user_agent)
             except (
                 TypeError,
@@ -323,6 +471,45 @@ class FetchFeed:
         youtube_fetcher = YoutubeFetcher(self.feed, self.options)
         return youtube_fetcher.fetch()
 
+    def fetch_forbidden(self, js_scrape=False):
+        url = "https://scrapeninja.p.rapidapi.com/scrape"
+        if js_scrape:
+            url = "https://scrapeninja.p.rapidapi.com/scrape-js"
+
+        payload = {"url": self.feed.feed_address}
+        headers = {
+            "x-rapidapi-key": settings.SCRAPENINJA_API_KEY,
+            "x-rapidapi-host": "scrapeninja.p.rapidapi.com",
+            "Content-Type": "application/json",
+        }
+        logging.debug(
+            "   ***> [%-30s] ~FRForbidden feed fetch: %s -> %s" % (self.feed.log_title[:30], url, payload)
+        )
+        response = requests.post(url, json=payload, headers=headers)
+
+        if response.status_code != 200:
+            logging.debug(
+                "   ***> [%-30s] ~FRForbidden feed fetch failed: %s -> %s"
+                % (self.feed.log_title[:30], url, payload)
+            )
+            return None
+        body = response.json().get("body")
+        if not body:
+            logging.debug(
+                "   ***> [%-30s] ~FRForbidden feed fetch failed: %s -> %s"
+                % (self.feed.log_title[:30], url, response.json())
+            )
+            return None
+
+        if "enable JS" in body and not js_scrape:
+            return self.fetch_forbidden(js_scrape=True)
+
+        logging.debug(
+            "   ***> [%-30s] ~FRForbidden feed fetch succeeded: %s -> %s"
+            % (self.feed.log_title[:30], url, body)
+        )
+        return body
+
 
 class ProcessFeed:
     def __init__(self, feed_id, fpf, options, raw_feed=None):
@@ -330,7 +517,9 @@ class ProcessFeed:
         self.options = options
         self.fpf = fpf
         self.raw_feed = raw_feed
+        self.feed_entries = []
         self.archive_seen_story_hashes = set()
+        self.cache_control_max_age = None
 
     def refresh_feed(self):
         self.feed = Feed.get_by_id(self.feed_id)
@@ -347,8 +536,53 @@ class ProcessFeed:
             feed_status, ret_values = self.verify_feed_integrity()
             if feed_status and ret_values:
                 return feed_status, ret_values
-        
-        self.fpf.entries = self.fpf.entries[:2000]
+
+            # Check for Cache-Control max-age and Retry-After in response headers
+            if hasattr(self.fpf, "headers") and self.fpf.headers:
+                # Check Cache-Control header
+                cache_control = self.fpf.headers.get("Cache-Control")
+                if cache_control:
+                    max_age_match = re.search(r"max-age=(\d+)", cache_control)
+                    if max_age_match:
+                        self.cache_control_max_age = (
+                            int(max_age_match.group(1)) / 60
+                        )  # Convert seconds to minutes
+
+                # Check Retry-After header
+                retry_after = self.fpf.headers.get("Retry-After")
+                if retry_after:
+                    try:
+                        # Retry-After can be seconds (integer) or HTTP-date
+                        retry_seconds = int(retry_after)
+                        retry_minutes = retry_seconds / 60
+                        # Use retry-after if it's longer than cache-control (or if cache-control is not set)
+                        if self.cache_control_max_age is None or retry_minutes > self.cache_control_max_age:
+                            self.cache_control_max_age = retry_minutes
+                            logging.debug(
+                                f"   ---> [{self.feed.log_title[:30]:<30}] ~FYUsing Retry-After header: ~SB{retry_seconds} seconds ({retry_minutes:.1f} minutes)"
+                            )
+                    except ValueError:
+                        # If it's not an integer, it might be an HTTP-date - skip for now
+                        logging.debug(
+                            f"   ---> [{self.feed.log_title[:30]:<30}] ~FRCouldn't parse Retry-After header: {retry_after}"
+                        )
+
+        self.feed_entries = self.fpf.entries
+
+        # Check if this is a high-volume feed that can handle more stories
+        max_entries = MAX_ENTRIES_TO_PROCESS
+        feed_address_lower = self.feed.feed_address.lower()
+        for high_volume_url in HIGH_VOLUME_FEED_URLS:
+            if high_volume_url in feed_address_lower:
+                max_entries = MAX_ENTRIES_HIGH_VOLUME
+                logging.debug(f"   ---> [{self.feed.log_title[:30]:<30}] High-volume feed detected ({high_volume_url}), allowing up to {max_entries} stories")
+                break
+
+        # If there are more than max_entries, we should sort the entries in date descending order and cut them off
+        if len(self.feed_entries) > max_entries:
+            self.feed_entries = sorted(self.feed_entries, key=lambda x: extract_story_date(x), reverse=True)[
+                :max_entries
+            ]
 
         if not self.options.get("archive_page", None):
             self.compare_feed_attribute_changes()
@@ -356,13 +590,13 @@ class ProcessFeed:
         # Determine if stories aren't valid and replace broken guids
         guids_seen = set()
         permalinks_seen = set()
-        for entry in self.fpf.entries:
+        for entry in self.feed_entries:
             guids_seen.add(entry.get("guid"))
             permalinks_seen.add(Feed.get_permalink(entry))
-        guid_difference = len(guids_seen) != len(self.fpf.entries)
+        guid_difference = len(guids_seen) != len(self.feed_entries)
         single_guid = len(guids_seen) == 1
         replace_guids = single_guid and guid_difference
-        permalink_difference = len(permalinks_seen) != len(self.fpf.entries)
+        permalink_difference = len(permalinks_seen) != len(self.feed_entries)
         single_permalink = len(permalinks_seen) == 1
         replace_permalinks = single_permalink and permalink_difference
 
@@ -371,7 +605,7 @@ class ProcessFeed:
         day_ago = datetime.datetime.now() - datetime.timedelta(days=1)
         story_hashes = []
         stories = []
-        for entry in self.fpf.entries:
+        for entry in self.feed_entries:
             story = pre_process_story(entry, self.fpf.encoding)
             if not story["title"] and not story["story_content"]:
                 continue
@@ -462,10 +696,18 @@ class ProcessFeed:
                 ret_values["same"],
                 "~FR~SB" if ret_values["error"] else "",
                 ret_values["error"],
-                len(self.fpf.entries),
+                len(self.feed_entries),
             )
         )
-        self.feed.update_all_statistics(has_new_stories=bool(ret_values["new"]), force=self.options["force"])
+        if self.cache_control_max_age:
+            logging.debug(
+                f"   ---> [{self.feed.log_title[:30]:<30}] ~FYScheduling next fetch with delay: ~SB{self.cache_control_max_age:.1f} minutes"
+            )
+        self.feed.update_all_statistics(
+            has_new_stories=bool(ret_values["new"]),
+            force=self.options["force"],
+            delay_fetch_sec=self.cache_control_max_age * 60 if self.cache_control_max_age else None,
+        )
         fetch_date = datetime.datetime.now()
         if ret_values["new"]:
             if not getattr(settings, "TEST_DEBUG", False):
@@ -503,7 +745,7 @@ class ProcessFeed:
                 if self.fpf.bozo and self.fpf.status != 304:
                     logging.debug(
                         "   ---> [%-30s] ~FRBOZO exception: %s ~SB(%s entries)"
-                        % (self.feed.log_title[:30], self.fpf.bozo_exception, len(self.fpf.entries))
+                        % (self.feed.log_title[:30], self.fpf.bozo_exception, len(self.feed_entries))
                     )
 
             if self.fpf.status == 304:
@@ -532,7 +774,7 @@ class ProcessFeed:
                         % (self.feed.log_title[:30], self.fpf.status)
                     )
                     self.feed = self.feed.schedule_feed_fetch_immediately()
-                if not self.fpf.entries:
+                if not self.feed_entries:
                     self.feed = self.feed.save()
                     self.feed.save_feed_history(self.fpf.status, "HTTP Redirect")
                     return FEED_ERRHTTP, ret_values
@@ -541,6 +783,8 @@ class ProcessFeed:
                     "   ---> [%-30s] ~SB~FRHTTP Status code: %s. Checking address..."
                     % (self.feed.log_title[:30], self.fpf.status)
                 )
+                if self.fpf.status in [403] and not self.feed.is_forbidden:
+                    self.feed = self.feed.set_is_forbidden()
                 fixed_feed = None
                 if not self.feed.known_good:
                     fixed_feed, feed = self.feed.check_feed_link_for_feed_address()
@@ -584,6 +828,8 @@ class ProcessFeed:
                     fixed_feed, feed = self.feed.check_feed_link_for_feed_address()
                 if not fixed_feed:
                     self.feed.save_feed_history(553, "Not an RSS feed", self.fpf.bozo_exception)
+                    if not self.feed.is_forbidden:
+                        self.feed = self.feed.set_is_forbidden()
                 else:
                     self.feed = feed
                 self.feed = self.feed.save()
@@ -784,11 +1030,11 @@ class FeedFetcherWorker:
                 set_user({"id": feed_id, "username": feed.feed_title})
 
                 skip = False
+                weight = "-"
+                quick = "-"
+                rand = "-"
                 if self.options.get("fake"):
                     skip = True
-                    weight = "-"
-                    quick = "-"
-                    rand = "-"
                 elif (
                     self.options.get("quick")
                     and not self.options["force"]
@@ -804,9 +1050,27 @@ class FeedFetcherWorker:
                         skip = True
                 elif False and feed.feed_address.startswith("http://news.google.com/news"):
                     skip = True
-                    weight = "-"
-                    quick = "-"
-                    rand = "-"
+
+                # Check for openrss.org rate limiting
+                if not skip and "openrss.org" in feed.feed_address and not self.options.get("force"):
+                    r = redis.Redis(connection_pool=settings.REDIS_FEED_UPDATE_POOL)
+                    current_timestamp = int(time.time())
+                    openrss_key = f"openrss_fetch:{current_timestamp}"
+
+                    # Try to set the key with 5 minutes expiration, only if it doesn't exist
+                    was_set = r.set(openrss_key, 1, nx=True, ex=300)
+
+                    if not was_set:
+                        # Another openrss.org feed was fetched in this same second
+                        skip = True
+                        logging.debug(
+                            f"   ---> [{feed.log_title[:30]:<30}] ~FYSkipping openrss.org fetch, another openrss feed fetched in last second"
+                        )
+                    else:
+                        logging.debug(
+                            f"   ---> [{feed.log_title[:30]:<30}] ~FGProceeding with openrss.org fetch"
+                        )
+
                 if skip:
                     logging.debug(
                         "   ---> [%-30s] ~BGFaking fetch, skipping (%s/month, %s subs, %s < %s)..."

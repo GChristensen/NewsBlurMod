@@ -9,6 +9,8 @@ ADMINS                = (
     ('Samuel Clay', 'samuel@newsblur.com'),
 )
 
+NEWSBLURMOD_HTTPS_PORT = os.getenv("NEWSBLURMOD_HTTPS_PORT")
+
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
 NEWSBLUR_URL          = 'https://newsblur'
@@ -150,16 +152,18 @@ SESSION_REDIS_DB = 5
 
 ELASTICSEARCH_FEED_HOSTS = ["db_elasticsearch:9200"]
 ELASTICSEARCH_STORY_HOSTS = ["db_elasticsearch:9200"]
+ELASTICSEARCH_DISCOVER_HOSTS = ["db_elasticsearch:9200"]
 
 ELASTICSEARCH_FEED_HOST = "http://db_elasticsearch:9200"
 ELASTICSEARCH_STORY_HOST = "http://db_elasticsearch:9200"
-
+ELASTICSEARCH_DISCOVER_HOST = "http://db_elasticsearch:9200"
 BACKED_BY_AWS = {
     'pages_on_node': False,
     'pages_on_s3': False,
     'icons_on_s3': False,
 }
 
+OPENAI_API_KEY = "sk-svcacct-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # ===========
 # = Logging =
@@ -182,10 +186,10 @@ DO_TOKEN_LOG = '0000000000000000000000000000000000000000000000000000000000000000
 DO_TOKEN_FABRIC = '0000000000000000000000000000000000000000000000000000000000000000'
 
 SERVER_NAME = "nblocalhost"
-NEWSBLUR_URL = os.getenv("NEWSBLUR_URL", "https://newsblur")
-
-if NEWSBLUR_URL == 'https://newsblur':
-    SESSION_COOKIE_DOMAIN = "newsblur"
+# NEWSBLUR_URL = os.getenv("NEWSBLUR_URL", "https://newsblur")
+#
+# if NEWSBLUR_URL == 'https://newsblur':
+#     SESSION_COOKIE_DOMAIN = "newsblur"
 
 SESSION_ENGINE = 'redis_sessions.session'
 
@@ -193,3 +197,7 @@ SESSION_ENGINE = 'redis_sessions.session'
 
 RECAPTCHA_SECRET_KEY = "0000000000000000000000000000000000000000"
 IMAGES_SECRET_KEY = "0000000000000000000000000000000"
+
+# APNS settings for token-based authentication
+APNS_TEAM_ID = "XXXXXXXXXX"  # Apple Developer Team ID (10 characters)
+APNS_KEY_ID = "XXXXXXXXXX"   # APNS Key ID (10 characters)

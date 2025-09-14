@@ -1,7 +1,7 @@
-import http.client
 import base64
 import concurrent
 import datetime
+import http.client
 import random
 import re
 import socket
@@ -523,6 +523,7 @@ def load_feeds_flat(request):
         categories = MCategory.serialize()
 
     saved_searches = MSavedSearch.user_searches(user.pk)
+    dashboard_rivers = MDashboardRiver.get_user_rivers(user.pk)
 
     logging.user(
         request,
@@ -555,6 +556,7 @@ def load_feeds_flat(request):
         "starred_count": starred_count,
         "starred_counts": starred_counts,
         "saved_searches": saved_searches,
+        "dashboard_rivers": dashboard_rivers,
         "share_ext_token": user.profile.secret_token,
     }
     return data
@@ -1033,6 +1035,7 @@ def load_feed_page(request, feed_id):
     return HttpResponse(data, content_type="text/html; charset=utf-8")
 
 
+@ratelimit(minutes=5, requests=50, use_path=True)
 @json.json_view
 def load_starred_stories(request):
     user = get_user(request)
@@ -3191,6 +3194,75 @@ def remove_dashboard_river(request):
     )
 
     MDashboardRiver.remove_river(request.user.pk, river_side, river_order)
+    dashboard_rivers = MDashboardRiver.get_user_rivers(request.user.pk)
+
+    return {
+        "dashboard_rivers": dashboard_rivers,
+    }
+
+
+def print_story(request):
+    story_hash = request.GET["story_hash"]
+    text_view = request.GET.get("text", False)
+    timezone = request.user.profile.timezone
+    try:
+        story = MStory.objects.get(story_hash=story_hash)
+    except MStory.DoesNotExist:
+        raise Http404
+
+    story_date = story.story_date
+
+    if text_view:
+        original_text = story.fetch_original_text(request=request)
+        story = Feed.format_story(story, story.story_feed_id, text=text_view)
+        story["story_content"] = original_text.decode("utf-8")
+    else:
+        story = Feed.format_story(story, story.story_feed_id)
+    return render(
+        request,
+        "reader/print.xhtml",
+        {"story": story, "local_datetime": localtime_for_timezone(story_date, timezone)},
+    )
+
+
+@json.json_view
+def save_dashboard_rivers(request):
+    try:
+        data = json.decode(request.body)
+        dashboard_rivers = data["dashboard_rivers"]
+    except KeyError:
+        return {"code": -1, "message": "Invalid JSON data"}
+
+    if not isinstance(dashboard_rivers, list):
+        return {"code": -1, "message": "dashboard_rivers must be a list"}
+
+    # Validate all rivers first
+    for river_data in dashboard_rivers:
+        if not all(k in river_data for k in ["river_id", "river_side", "river_order"]):
+            return {"code": -1, "message": "Each river must have river_id, river_side, and river_order"}
+
+        try:
+            river_order = int(river_data["river_order"])
+            if river_order < 0:
+                return {"code": -1, "message": "river_order must be non-negative"}
+        except ValueError:
+            return {"code": -1, "message": "river_order must be an integer"}
+
+    logging.user(request, "~FCSaving dashboard rivers: ~SB%s~SN" % dashboard_rivers)
+
+    # Delete all existing rivers for this user
+    MDashboardRiver.objects(user_id=request.user.pk).delete()
+
+    # Save new rivers in order
+    for river_data in dashboard_rivers:
+        MDashboardRiver.objects.create(
+            user_id=request.user.pk,
+            river_id=river_data["river_id"],
+            river_side=river_data["river_side"],
+            river_order=int(river_data["river_order"]),
+        )
+
+    # Get updated rivers
     dashboard_rivers = MDashboardRiver.get_user_rivers(request.user.pk)
 
     return {

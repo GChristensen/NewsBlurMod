@@ -184,6 +184,10 @@ color: #a85b40;
     box-shadow: none;
 }
 
+.NB-dark .NB-modal-feedchooser .NB-premium-prorate-message {
+    color: rgba(216, 216, 216, 0.5);
+}
+
 .NB-dark .NB-feed-badge {
     background-color: #303739;
 }
@@ -269,7 +273,6 @@ color: #a85b40;
 }
 
 .NB-dark .NB-feeds-header-enable-sorting:hover img,
-.NB-dark .NB-feeds-header-feedxcavator img,
 .NB-dark .NB-feeds-header-user-interactions:hover img,
 .NB-dark .NB-feeds-header-collapse-sidebar:hover img {
     opacity: 1.0;
@@ -1922,6 +1925,10 @@ a.mention, a.mention-group {
 
 .NB-dark .NB-history-fetch.NB-errorcode {
     color: #953524;
+}
+
+.NB-dark .NB-subscribed {
+    color: #3c7922;
 }
 
 /************************************************************************************************/

@@ -238,3 +238,12 @@ def ScheduleCountTagsForUser(user_id):
     from apps.rss_feeds.models import MStarredStoryCounts
 
     MStarredStoryCounts.count_for_user(user_id)
+
+
+@app.task()
+def IndexDiscoverStories(story_ids):
+    # NewsBlurMod: disabled discover indexing
+    pass
+    #from apps.rss_feeds.models import MStory
+
+    #MStory.index_stories_for_discover(story_ids)
