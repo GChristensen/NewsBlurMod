@@ -24,10 +24,10 @@ Docker under Linux and Windows.
 
 ### NewsBlur HTTPS Port
 
-The 80 and 1936 ports of the NewsBlur server are disabled. 
+The 80 port of the NewsBlur server are disabled. 
 The server is available through the 443 (default HTTPS) prot. 
 To customize the HTTPS port, create a .env file in the repo root
-directory with the following variable:
+directory with the following variable before making the app:
 
 ```.dotenv
 NEWSBLURMOD_HTTPS_PORT=10443
