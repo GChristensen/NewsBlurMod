@@ -1118,7 +1118,7 @@ class Feed(models.Model):
         if self.pk not in feed_ids:
             feed_ids.append(self.pk)
 
-        results = self.find_similar_feeds(feed_ids=feed_ids, offset=offset, limit=limit)
+        results = [] #self.find_similar_feeds(feed_ids=feed_ids, offset=offset, limit=limit)
 
         similar_feeds = []
         if offset == 0:

@@ -665,7 +665,7 @@ def discover_feeds(request, feed_id=None):
         )
     elif request.method == "POST":
         feed_ids = request.POST.getlist("feed_ids")
-        similar_feeds = Feed.find_similar_feeds(feed_ids=feed_ids, offset=offset, limit=limit)
+        similar_feeds = [] #Feed.find_similar_feeds(feed_ids=feed_ids, offset=offset, limit=limit)
         similar_feed_ids = [result["_source"]["feed_id"] for result in similar_feeds]
     else:
         return {"code": -1, "message": "Missing feed_ids.", "discover_feeds": None, "failed": True}
