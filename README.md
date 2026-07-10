@@ -21,13 +21,14 @@ Docker under Linux and Windows.
 
 ## Installation Instructions
 
-### Running under Linux (recommended)
+### Running under Linux
 
-Clone the repo and use the Makefile.unix to install NewsBlurMod: `sudo make -f Makefile.unix nb`
+Clone the repo and use the Makefile.unix to install NewsBlurMod: `sudo make -f Makefile.unix nb`.
+See the next section for the details of required packages and docker configuration.
 
 ### Running under Docker Engine inside WSL2
 * Enable 'Virtual Machine Platform' and 'WSL2' Windows system components.
-* Install openSUSE Linux distribution by issuing `wsl --install openSUSE-Tumbleweed` in the terminal.
+* Install your preffered Linux distribution. 
 * Enable systemd in your WSL terminal by issuing `sudo -e /etc/wsl.conf` and placing the
   following text into it:
 ```
@@ -36,7 +37,7 @@ systemd=true
 ```
 Shutdown WSL with the command: `wsl --shutdown` in the Windows terminal.
 * Start WSL again by issuing `wsl` in the Windows terminal. Install required packages using the following
- command in the WSL terminal:
+ command in the WSL terminal (the example is for openSUSE):
 ```
 sudo zypper in make git openssl nodejs21 docker docker-compose docker-compose-switch
 ```
@@ -55,8 +56,26 @@ command: `git clone https://github.com/GChristensen/NewsBlurMod`
 
 Restart Windows after the build is finished.
 
+### User Configuration
+
+* After the build is finished, open https://newsblur in the browser. Please read the original
+  readme below for more details.
+* Create a user account and login.
+* If all premium features are not enabled automatically, execute the following code in the terminal:
+```
+  make shell
+  
+  u = User.objects.get(username='YOUR_USERNAME')
+  u.profile.activate_premium(True)
+  u.profile.activate_archive(True)
+  u.profile.activate_pro(True)
+```
+* On slow machines some servers, for example node, may start before databases are online.
+  It is necessary to restart their corresponding containers to make them work properly.
+
+
 ### Running under Docker Desktop
-This method may result in substantial performance loss on slow machines.
+This method may be suitable for development only.
 
 * Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 * Install the latest [Git for Windows](https://git-scm.com/download/win).
@@ -80,24 +99,7 @@ git clone -c core.autocrlf=false -c core.symlinks=true https://github.com/GChris
 ```
 If you are deploying it on another machine, put the IP address of that machine instead of
 `127.0.0.1`.
-* Change the current directory of Windows terminal to the repo directory and execute `make nb`.
-
-### User Configuration
-
-* After the build is finished, open https://newsblur in the browser. Please read the original 
-  readme below for more details.
-* Create a user account and login.
-* If all premium features are not enabled automatically, execute the following code in the terminal:
-```
-  make shell
-  
-  u = User.objects.get(username='YOUR_USERNAME')
-  u.profile.activate_premium(True)
-  u.profile.activate_archive(True)
-  u.profile.activate_pro(True)
-```
-* On slow machines some servers, for example node, may start before databases are online.
-  It is necessary to restart their corresponding containers to make them work properly.
+* Change the current directory of Windows terminal to the repo directory and execute `make nb -f Makefile.win`.
 
 ----
 
