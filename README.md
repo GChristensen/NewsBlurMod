@@ -7,15 +7,15 @@ Docker under Linux and Windows.
 * It is possible to self-host this repo under Windows as is. It could be run either 
   directly under Docker Desktop or under Docker Engine inside WSL2.
 * Increased the limit of maximum 100 unread stories. The current limit is 2000.
-* Disabled alphabetical sorting of feeds in the sidebar. It is possible to sort feeds using
-  drag&drop or through the development JavaScript console.
+* Disabled the enforced alphabetical sorting order of feeds in the sidebar. 
+* Drag&drop feed reordering and reorganization is fully supported. Currently, should be enabled with a button.
 * Enlarged preview images in the grid mode, changed content position of the images 
   to "contain" instead of "fill".
 * New dark theme.
 * The discovery dropdown is hidden, the discover feed indexing is disabled.
 * Single click on unread count to mark as read.
 *  NewsBlurMod could seamlessly be used with [Feedxcavator](https://github.com/GChristensen/feedxcavator) because
-   Websub is enabled by default, throttling of websub pushes is turned off,  
+   Websub is enabled by default, throttling of websub pushes is turned off,
    subscription lease is made infinite.
 * Disabled Prometheus middleware.
 
