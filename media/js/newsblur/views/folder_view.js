@@ -320,6 +320,7 @@ NEWSBLUR.Views.Folder = Backbone.View.extend({
     // ==========
 
     open: function (e) {
+        if (NEWSBLUR.reader.flags['sorting_feed']) return;
         if (this.options.feed_chooser) return;
         e.preventDefault();
         e.stopPropagation();

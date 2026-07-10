@@ -892,7 +892,7 @@ PIPELINE = {
     "PIPELINE_ENABLED": not DEBUG_ASSETS,
     "PIPELINE_COLLECTOR_ENABLED": not DEBUG_ASSETS,
     "SHOW_ERRORS_INLINE": DEBUG_ASSETS,
-    "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
+    "CSS_COMPRESSOR": "utils.pipeline_utils.LightningCSSCompressor",
     "JS_COMPRESSOR": "pipeline.compressors.closure.ClosureCompressor",
     # 'CSS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',
     # 'JS_COMPRESSOR': 'pipeline.compressors.NoopCompressor',

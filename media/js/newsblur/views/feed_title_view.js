@@ -319,6 +319,7 @@ NEWSBLUR.Views.FeedTitleView = Backbone.View.extend({
 
     open: function (e, options) {
         options = options || {};
+        if (NEWSBLUR.reader.flags['sorting_feed']) return;
         if (this.options.feed_chooser && !options.ignore_feed_selector) return;
         if (this.options.type != 'feed') return;
         if (e.which >= 2) return;

@@ -115,7 +115,9 @@ NEWSBLUR.Views.FeedList = Backbone.View.extend({
             if (folders.length) {
                 $('.NB-task-manage').removeClass('NB-disabled');
                 $('.NB-callout-ftux').fadeOut(500);
-                // this.load_sortable_feeds();
+                if (NEWSBLUR.reader.flags['sortable_feeds']) {
+                    NEWSBLUR.reader.load_sortable_feeds();
+                }
                 _.delay(_.bind(NEWSBLUR.reader.update_starred_count, NEWSBLUR.reader), 250);
                 NEWSBLUR.reader.check_hide_getting_started();
 
