@@ -9,7 +9,23 @@ ADMINS                = (
     ('Samuel Clay', 'samuel@newsblur.com'),
 )
 
-NEWSBLURMOD_HTTPS_PORT = os.getenv("NEWSBLURMOD_HTTPS_PORT")
+def _read_env_file_var(name, env_path="/srv/newsblur/.env"):
+    # Fall back to reading the value directly from the .env file, since for an
+    # unknown reason the variable can be empty in the environment when this
+    # settings module is interpreted. newsblur_web/docker_local_settings.py
+    if not os.path.exists(env_path):
+        return None
+    with open(env_path) as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            if key.strip() == name:
+                return value.strip().strip('"').strip("'") or None
+    return None
+
+NEWSBLURMOD_HTTPS_PORT = os.getenv("NEWSBLURMOD_HTTPS_PORT") or _read_env_file_var("NEWSBLURMOD_HTTPS_PORT")
 
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
