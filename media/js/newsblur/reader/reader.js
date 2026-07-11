@@ -1198,7 +1198,9 @@
             var json =  JSON.stringify(combined_folders, null, 2);
 
             for (var kv of Object.entries(feed_titles)) {
-                json = json.replace(new RegExp(`^(\\s+)${kv[0]}(,?)$`, "m"), `\$1${kv[0]}\$2 // ${kv[1]}`);
+                var feed = this.model.get_feed(kv[0]);
+                var feed_url = feed ? feed.get('feed_address') : '';
+                json = json.replace(new RegExp(`^(\\s+)${kv[0]}(,?)$`, "m"), `\$1${kv[0]}\$2 // ${kv[1]} | ${feed_url}`);
             }
 
             json = "NEWSBLUR._feed_order = " + json;
