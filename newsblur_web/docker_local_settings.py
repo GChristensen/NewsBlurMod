@@ -14,7 +14,7 @@ NEWSBLURMOD_HTTPS_PORT = os.getenv("NEWSBLURMOD_HTTPS_PORT")
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
 NEWSBLUR_URL          = 'https://newsblur'
-PUSH_DOMAIN           = 'newsblur'
+PUSH_DOMAIN           = 'newsblur:' + NEWSBLURMOD_HTTPS_PORT if NEWSBLURMOD_HTTPS_PORT else 'newsblur'
 SESSION_COOKIE_DOMAIN = 'newsblur'
 
 # ===================
