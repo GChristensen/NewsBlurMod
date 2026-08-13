@@ -1,0 +1,38 @@
+---
+layout: default
+---
+<!DOCTYPE html>
+<html>
+<head>
+
+</head>
+<body>
+    <h1 id="newsblurmod">NewsBlurMod</h1>
+
+    <p style="text-align: justify;">NewsBlurMod is a fork of <a href="https://github.com/samuelclay/NewsBlur" target="_blank">NewsBlur</a>
+        for self-hosting with Docker under Linux and Windows.
+    </p>
+
+    <h4>Modifications</h4>
+
+    <p style="text-align: justify;">NewsBlurMod currently includes the following changes over upstream NewsBlur:</p>
+    <ul>
+        <li>It is possible to self-host this repo under Windows as is. It could be run either directly under Docker Desktop or under Docker Engine inside WSL2.</li>
+        <li>Increased the limit of maximum 100 unread stories. The current limit is 2000.</li>
+        <li>Disabled the enforced alphabetical sorting order of feeds in the sidebar.</li>
+        <li>Drag&amp;drop feed reordering and reorganization is fully supported. Currently, should be enabled with a button.</li>
+        <li>Enlarged preview images in the grid mode, changed content position of the images to "contain" instead of "fill".</li>
+        <li>New dark theme.</li>
+        <li>The discovery dropdown is hidden, the discover feed indexing is disabled.</li>
+        <li>Single click on unread count to mark as read.</li>
+        <li>NewsBlurMod could seamlessly be used with <a href="https://github.com/GChristensen/feedxcavator" target="_blank">Feedxcavator</a>
+            because Websub is enabled by default, throttling of websub pushes is turned off, subscription lease is made infinite.</li>
+        <li>Disabled Prometheus middleware.</li>
+    </ul>
+
+    <p style="text-align: justify;">
+        See the <a href="https://github.com/GChristensen/NewsBlurMod#readme" target="_blank">project README</a>
+        for installation instructions and further details.
+    </p>
+</body>
+</html>
