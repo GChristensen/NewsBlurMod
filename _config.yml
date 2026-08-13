@@ -1,3 +1,44 @@
 theme: jekyll-theme-minimal
 title: NewsBlurMod
 description: A fork of NewsBlur for self-hosting with Docker under Linux and Windows
+
+# Only index.html/_layouts are needed for the pages site. Everything else is
+# the application codebase, and some of it (e.g. ansible/inventories/hetzner.ini)
+# contains git symlinks pointing outside the repo that break Jekyll's build.
+exclude:
+  - CLAUDE.md
+  - LICENSE.md
+  - Maintenance.md
+  - Makefile
+  - Makefile.unix
+  - Makefile.win
+  - README.md
+  - UPGRADING.md
+  - ansible
+  - ansible.cfg
+  - ansible.old.cfg
+  - api
+  - apps
+  - archive
+  - blog
+  - celerybeat-schedule
+  - clients
+  - config
+  - docker
+  - docker-compose.metrics.yml
+  - docker-compose.yml
+  - flask_metrics
+  - flask_monitor
+  - logs
+  - manage.py
+  - media
+  - newsblur_web
+  - node
+  - perf
+  - pytest.ini
+  - requirements.txt
+  - static
+  - templates
+  - terraform
+  - utils
+  - vendor
