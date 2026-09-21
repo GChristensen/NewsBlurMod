@@ -3,7 +3,7 @@
 This is a fork of [NewsBlur](https://github.com/samuelclay/NewsBlur) for self-hosting with 
 Docker under Linux and Windows.
 
-![](_layouts/screen_500.jpg)
+![](_layouts/screen_500.jpg) 
 
 ## Modifications
 * It is possible to self-host this repo under Windows as is. It could be run either 
