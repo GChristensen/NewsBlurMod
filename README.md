@@ -25,6 +25,8 @@ Docker under Linux and Windows.
 
 Clone the repo and use the Makefile.unix to install NewsBlurMod: `sudo make -f Makefile.unix nb`.
 See the next section for the details of required packages and docker configuration.
+The server on which the instance runs should be available under the "newsblur" name
+in your network or locally through the hosts file.
 
 ### Running under Docker Engine inside WSL2
 * Enable 'Virtual Machine Platform' and 'WSL2' Windows system components.
