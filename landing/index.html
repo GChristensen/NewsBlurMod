@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NewsBlurMod: self-hosted NewsBlur, without the AI</title>
+<meta name="description" content="NewsBlurMod is a fork of NewsBlur for self-hosting with Docker on Linux and Windows. Easy to install, fast because it has no AI integrations, and packed with features missing in the original.">
+<meta name="theme-color" content="#121212">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="NewsBlurMod: self-hosted NewsBlur, without the AI">
+<meta property="og:description" content="Run the full NewsBlur stack on your own machine with Docker. Fast, private and easy to self-host.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+<link rel="stylesheet" href="styles.css">
+<script src="main.js" defer></script>
+</head>
+<body>
+
+<!-- icon sprite used by the page and by the interface preview -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-folder" viewBox="0 0 16 16"><path d="M1 3h5l1.5 1.5H15V13H1z" fill="currentColor"/></symbol>
+  <symbol id="i-home" viewBox="0 0 16 16"><path d="M2 8 8 2.5 14 8v5.5h-4V10H6v3.5H2z" fill="currentColor"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c-3 3-3 9 0 12M8 2c3 3 3 9 0 12"/></g></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+  <symbol id="i-drag" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="9" cy="5" r="1.8"/><circle cx="15" cy="5" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="19" r="1.8"/><circle cx="15" cy="19" r="1.8"/></g></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12l3 3 5-6"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></symbol>
+  <symbol id="i-win" viewBox="0 0 24 24"><path d="m3 5 8-1v8H3zM13 4l8-1v9h-8zM3 13h8v7l-8-1zM13 13h8v8l-8-1z"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19C4 10 9 4 20 4c0 11-6 16-15 15zM5 19 14 10"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><img src="img/favicon.svg" alt="" width="26" height="26">NewsBlurMod</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#speed">Speed</a>
+      <a href="#self-host">Self-host</a>
+      <a class="btn btn-small" href="https://github.com/GChristensen/NewsBlurMod" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ================= hero ================= -->
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">A self-hosted fork of NewsBlur</p>
+    <h1>Your news reader.<br><em>Your server.</em> No AI in the way.</h1>
+    <p class="lead">NewsBlurMod runs the full NewsBlur stack on your own machine with Docker: Linux, WSL2 or Windows.
+      Quick pages, a proper dark theme, and the features the original never got.</p>
+    <div class="cta">
+      <a class="btn" href="https://github.com/GChristensen/NewsBlurMod" target="_blank" rel="noopener">View on GitHub</a>
+      <a class="btn btn-ghost" href="#self-host">Self-host in minutes</a>
+    </div>
+    <ul class="chips" aria-label="Platforms">
+      <li>Docker</li><li>Linux</li><li>Windows</li><li>WSL2</li><li>Open source</li>
+    </ul>
+  </div>
+
+  <!-- interface preview: plain HTML and CSS, see main.js for the two interactions -->
+  <div class="wrap stage">
+    <div class="window">
+      <div class="chrome" aria-hidden="true">
+        <span class="lights"><i></i><i></i><i></i></span>
+        <span class="address">https://newsblur</span>
+      </div>
+
+      <div class="app" id="app" data-view="list" role="group" aria-label="Interactive preview of the NewsBlurMod interface">
+
+        <aside class="side">
+          <div class="side-top">
+            <span class="user">reader<small><span class="dot-read">&#9679;</span> <span data-unread-total>57</span> <span class="dot-unread">&#9679;</span> 0</small></span>
+            <span class="tools" aria-hidden="true">
+              <svg class="ico-s"><use href="#i-grid"/></svg>
+              <svg class="ico-s"><use href="#i-layers"/></svg>
+            </span>
+          </div>
+
+          <nav class="feeds" aria-label="Feeds">
+            <div class="row top"><svg class="ico-s"><use href="#i-home"/></svg>Dashboard</div>
+            <div class="row top"><svg class="ico-s"><use href="#i-globe"/></svg>All Site Stories</div>
+
+            <div class="folder"><svg class="ico-s"><use href="#i-folder"/></svg>News</div>
+            <div class="row feed"><i class="fav" style="--c:#3b82c4">H</i>Harbor Times</div>
+            <div class="row feed current"><i class="fav" style="--c:#e4572e">W</i>The Weekly Globe<button class="badge" data-current title="Click to mark as read">3</button></div>
+            <div class="row feed"><i class="fav" style="--c:#8a5cc7">O</i>Open Wire<button class="badge" title="Click to mark as read">6</button></div>
+
+            <div class="folder"><svg class="ico-s"><use href="#i-folder"/></svg>Science</div>
+            <div class="row feed"><i class="fav" style="--c:#2a9d8f">O</i>Orbit Weekly<button class="badge" title="Click to mark as read">11</button></div>
+            <div class="row feed"><i class="fav" style="--c:#3d5a80">D</i>Deep Sea Digest</div>
+
+            <div class="folder"><svg class="ico-s"><use href="#i-folder"/></svg>Tech</div>
+            <div class="row feed"><i class="fav" style="--c:#d98324">K</i>Kernel Notes</div>
+            <div class="row feed"><i class="fav" style="--c:#4c9a2a">S</i>Self-Hosted Digest<button class="badge" title="Click to mark as read">19</button></div>
+            <div class="row feed"><i class="fav" style="--c:#c0563b">R</i>Rust Weekly<button class="badge" title="Click to mark as read">18</button></div>
+
+            <div class="folder"><svg class="ico-s"><use href="#i-folder"/></svg>Video</div>
+            <div class="row feed"><i class="fav" style="--c:#d33">C</i>Conf Talks</div>
+
+            <div class="folder"><svg class="ico-s"><use href="#i-folder"/></svg>Photo</div>
+            <div class="row feed"><i class="fav" style="--c:#6b7280">L</i>Landscape of the Day</div>
+          </nav>
+
+          <div class="side-bottom" aria-hidden="true">
+            <span class="plus">+</span>
+            <span class="seg"><b>All</b><span>Unread</span></span>
+          </div>
+        </aside>
+
+        <section class="main" aria-label="Stories">
+          <div class="main-top" aria-hidden="true">
+            <span class="feed-title"><i class="fav" style="--c:#e4572e">W</i>The Weekly Globe</span>
+            <span class="ctl">
+              <span class="pill">Unread &middot; Newest &#9662;</span>
+              <span class="pill search">&#9906;</span>
+              <span class="next">&#9679; Next unread</span>
+            </span>
+          </div>
+
+          <div class="stories">
+            <article class="story unread">
+              <img class="thumb" src="img/mountains.svg" alt="" width="120" height="90">
+              <div class="text"><h3>Trail season opens early as alpine snow melts ahead of schedule</h3><p>Rangers report record numbers on the high routes and ask hikers to start before dawn.</p></div>
+              <time>21:33</time>
+            </article>
+            <article class="story unread">
+              <img class="thumb" src="img/coffee.svg" alt="" width="120" height="90">
+              <div class="text"><h3>The quiet return of the neighbourhood coffee roaster</h3><p>Small-batch shops are winning back their morning regulars, one cup at a time.</p></div>
+              <time>20:40</time>
+            </article>
+            <article class="story unread">
+              <img class="thumb" src="img/sailboat.svg" alt="" width="120" height="90">
+              <div class="text"><h3>Solo sailor completes Atlantic crossing in a 28-foot boat</h3><p>After forty-one days at sea, the crew of one is home, tanned and slightly sick of tinned peaches.</p></div>
+              <time>19:12</time>
+            </article>
+            <article class="story">
+              <img class="thumb" src="img/rocket.svg" alt="" width="120" height="90">
+              <div class="text"><h3>Small-launch startup schedules its first orbital attempt</h3><p>The two-stage rocket is rolling out to the pad for a static fire this week.</p></div>
+              <time>17:05</time>
+            </article>
+            <article class="story">
+              <img class="thumb" src="img/plant.svg" alt="" width="120" height="90">
+              <div class="text"><h3>Balcony gardens: what actually grows in a shady flat</h3><p>Ferns, mint and a surprising amount of lettuce. A practical guide from people who tried.</p></div>
+              <time>14:48</time>
+            </article>
+            <article class="story">
+              <img class="thumb" src="img/lighthouse.svg" alt="" width="120" height="90">
+              <div class="text"><h3>Restored lighthouse reopens to visitors after ten years</h3><p>The lamp room is back in service and the spiral stair has 137 freshly painted steps.</p></div>
+              <time>11:20</time>
+            </article>
+          </div>
+
+          <div class="main-bottom">
+            <span class="tabs" aria-hidden="true"><b>Feed</b><span>Text</span></span>
+            <span class="views">
+              <span class="style-label" aria-hidden="true">Style</span>
+              <button type="button" class="on" data-view="list" aria-pressed="true">List</button>
+              <button type="button" data-view="grid" aria-pressed="false">Grid</button>
+            </span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= pillars ================= -->
+<section class="pillars">
+  <div class="wrap grid3">
+    <article class="card">
+      <svg class="ico"><use href="#i-box"/></svg>
+      <h2>Self-hosting, made easy</h2>
+      <p>Clone the repo, run one make target, open <code>https://newsblur</code>. The web app, workers, databases and proxy all come up together, on Linux or Windows.</p>
+      <a class="more" href="#self-host">See the commands</a>
+    </article>
+    <article class="card">
+      <svg class="ico"><use href="#i-layers"/></svg>
+      <h2>Features upstream doesn&rsquo;t have</h2>
+      <p>Two thousand unread stories instead of a hundred, real drag &amp; drop, one-click mark as read, a new dark theme and more.</p>
+      <a class="more" href="#features">Browse the list</a>
+    </article>
+    <article class="card">
+      <svg class="ico"><use href="#i-bolt"/></svg>
+      <h2>Fast, because there is no AI</h2>
+      <p>No model calls and no summaries to wait for. The server spends its time on your feeds, so lists and stories open immediately.</p>
+      <a class="more" href="#speed">Why it&rsquo;s quick</a>
+    </article>
+  </div>
+</section>
+
+<!-- ================= features ================= -->
+<section id="features" class="section">
+  <div class="wrap">
+    <h2 class="title">What you get that upstream doesn&rsquo;t offer</h2>
+    <p class="sub">Everything below is already in NewsBlurMod. Nothing is a roadmap item.</p>
+    <div class="grid4">
+      <article class="feat"><svg class="ico"><use href="#i-layers"/></svg><h3>2,000 unread stories</h3><p>The cap of 100 unread stories is gone. The limit is now 2000, so a week away doesn&rsquo;t drop stories on the floor.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-drag"/></svg><h3>Drag &amp; drop organizing</h3><p>Reorder and reorganize feeds and folders by dragging. The forced alphabetical sort in the sidebar is disabled.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-grid"/></svg><h3>Bigger grid previews</h3><p>Grid mode uses larger preview images, fitted with &ldquo;contain&rdquo; instead of &ldquo;fill&rdquo; so nothing gets cropped.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-moon"/></svg><h3>A new dark theme</h3><p>Deep, even and easy on the eyes at night. It is the look of the preview above.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-check"/></svg><h3>One-click mark as read</h3><p>A single click on an unread count marks that feed as read.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-plug"/></svg><h3>Ready for Feedxcavator</h3><p>WebSub is on by default, push throttling is off and subscription leases never expire, so it pairs cleanly with <a href="https://github.com/GChristensen/feedxcavator" target="_blank" rel="noopener">Feedxcavator</a>.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-win"/></svg><h3>Runs on Windows</h3><p>Use Docker Desktop, or Docker Engine inside WSL2. No spare Linux box required.</p></article>
+      <article class="feat"><svg class="ico"><use href="#i-leaf"/></svg><h3>Lean by default</h3><p>Discovery indexing and the Prometheus middleware are switched off, so less work happens in the background.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= speed ================= -->
+<section id="speed" class="section band">
+  <div class="wrap split">
+    <div>
+      <h2 class="title">No AI. That&rsquo;s the feature.</h2>
+      <p class="sub left">NewsBlurMod has no AI integrations. Nothing sits between you and your stories waiting for a model to answer.</p>
+    </div>
+    <ul class="checks">
+      <li><b>No model calls</b> in the reading path, so a story opens as soon as you click it.</li>
+      <li><b>No summaries or rewrites</b> of what the publisher wrote. You read the original.</li>
+      <li><b>No keys, quotas or subscriptions</b> to set up for a smart layer you didn&rsquo;t ask for.</li>
+      <li><b>Less background work</b>: discovery indexing and metrics middleware are off.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= self-host ================= -->
+<section id="self-host" class="section">
+  <div class="wrap">
+    <h2 class="title">From clone to reading in a few commands</h2>
+    <p class="sub">You need Docker, git and make. Everything else is built for you.</p>
+
+    <div class="split code-split">
+      <div class="code-card">
+        <div class="code-head"><span>Linux or WSL2</span></div>
+<pre><code><span class="c"># 1. Make the server IP available under </span>
+<span class="c">#    the "newsblur" name in your net</span>
+git clone https://github.com/GChristensen/NewsBlurMod
+cd NewsBlurMod
+sudo make -f Makefile.unix nb</code></pre>
+      </div>
+      <div class="code-card">
+        <div class="code-head"><span>Windows, Docker Desktop</span></div>
+<pre><code><span class="c">:: 1. add "127.0.0.1 newsblur" to the hosts file</span>
+<span class="c">::    C:\Windows\System32\drivers\etc\hosts</span>
+git clone -c core.autocrlf=false -c core.symlinks=true https://github.com/GChristensen/NewsBlurMod
+cd NewsBlurMod
+make nb -f Makefile.win</code></pre>
+      </div>
+    </div>
+
+    <ol class="steps">
+      <li><b>Build.</b> One make target builds the images, starts every container and bootstraps the database.</li>
+      <li><b>Open</b> <code>https://newsblur</code> in your browser and create an account.</li>
+      <li><b>Subscribe</b> and read. Import an OPML file to bring your feeds along.</li>
+    </ol>
+    <p class="note">Docker Desktop is fine for trying it out. For a long-running server use Linux, or Docker Engine inside WSL2.
+      The <a href="https://github.com/GChristensen/NewsBlurMod#readme" target="_blank" rel="noopener">README</a> has the full prerequisites for each platform.</p>
+  </div>
+</section>
+
+<!-- ================= closing call to action ================= -->
+<section class="section closing">
+  <div class="wrap">
+    <h2 class="title">Take your feed reader back</h2>
+    <p class="sub">Free and open source. Bring your own server.</p>
+    <div class="cta center">
+      <a class="btn" href="https://github.com/GChristensen/NewsBlurMod" target="_blank" rel="noopener">Get NewsBlurMod on GitHub</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <p>NewsBlurMod is a fork of <a href="https://github.com/samuelclay/NewsBlur" target="_blank" rel="noopener">NewsBlur</a> by Samuel Clay.</p>
+    <p>
+      <a href="https://gchristensen.github.io/" target="_blank" rel="noopener">© g/christensen</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
