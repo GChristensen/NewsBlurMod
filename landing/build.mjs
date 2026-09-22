@@ -27,6 +27,9 @@ const SVG_DIR = "media/landing";      // where the remaining minified svgs go, r
 
 // relative paths only: absolute URLs, root-absolute paths (/images/...) and #anchors are left alone
 const isLocal = (url) => !/^([a-z][a-z0-9+.-]*:|\/|#)/i.test(url);
+// a "../"-prefixed url (e.g. media/landing/demo.webm) already points at its final,
+// repo-root-relative location: it needs no copying or inlining, just the "../" stripped
+const isOutside = (url) => url.startsWith("../");
 const bytes = (s) => Buffer.byteLength(s, "utf8");
 const read = (rel) => readFile(path.join(here, rel), "utf8");
 
@@ -42,7 +45,7 @@ const log = [];
 
 if (plain) {
   // ---------------------------------------------------------------- plain
-  html = mapUrls(html, (url) => "landing/" + url);
+  html = mapUrls(html, (url) => isOutside(url) ? url.slice(3) : "landing/" + url);
   after = bytes(html);
   await mkdir(outDir, { recursive: true });
   await writeFile(path.join(outDir, "index.html"), html, "utf8");
@@ -113,6 +116,7 @@ if (plain) {
   }
   const written = new Set();
   html = mapUrls(html, (url, attr) => {
+    if (isOutside(url)) return url.slice(3);   // already at its final, repo-root-relative location
     const svg = svgs.get(url);
     if (svg === undefined) throw new Error(`unhandled local asset: ${url}`);
     if (attr !== "data" && bytes(svg) <= INLINE_LIMIT)

@@ -309,6 +309,18 @@ pre code { padding: 0; background: none; font-size: inherit; }
 .steps b { color: var(--text); font-weight: 600; }
 .note { max-width: 760px; margin: 24px auto 0; color: var(--muted); text-align: center; font-size: .95rem; }
 
+.demo-video {
+  max-width: 620px;
+  max-height: 384px;
+  margin: 44px auto 0;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0d0d0d;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 120px rgba(111, 207, 151, .08);
+}
+.demo-video video { display: block; width: 100%; height: auto; }
+
 .closing { padding-top: 40px; }
 .closing .cta { margin-top: 30px; }
 
