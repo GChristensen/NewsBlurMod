@@ -251,3 +251,21 @@ class Test_Feed(TestCase):
 
     def test_all_feeds(self):
         pass
+
+
+class Test_MStoryVideoPoster(TestCase):
+    # Grid tiles in media/js/newsblur/views/story_title_view.js need a poster image for video stories
+
+    def test_extract_image_urls__video_poster(self):
+        story = MStory(
+            story_permalink="https://example.com/clips/1",
+            story_content='<video poster="/clips/1.jpg" src="https://example.com/clips/1.mp4"></video>',
+        )
+        self.assertEqual(story.extract_image_urls(), ["https://example.com/clips/1.jpg"])
+
+    def test_extract_image_urls__video_without_poster(self):
+        story = MStory(
+            story_permalink="https://example.com/clips/2",
+            story_content='<video><source src="https://example.com/clips/2.mp4" type="video/mp4" /></video>',
+        )
+        self.assertIsNone(story.extract_image_urls())

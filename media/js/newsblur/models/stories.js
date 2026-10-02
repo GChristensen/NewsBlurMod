@@ -86,6 +86,42 @@ NEWSBLUR.Models.Story = Backbone.Model.extend({
         }
     },
 
+    // First video URL found in story_content, used by grid tiles in story_title_view.js.
+    // Video enclosures are turned into <video><source> tags by utils/story_functions.py.
+    video_url: function () {
+        var content = this.get('story_content');
+        if (this._video_url !== undefined && this._video_url_content === content) return this._video_url;
+        this._video_url_content = content;
+        this._video_url = null;
+
+        if (!content || content.indexOf('<video') == -1 || !window.DOMParser) return this._video_url;
+
+        // DOMParser does not fetch any resources, unlike building nodes with $(content)
+        var doc = new DOMParser().parseFromString(content, 'text/html');
+        var candidates = [];
+        _.each(doc.querySelectorAll('video'), function (video) {
+            if (video.getAttribute('src')) {
+                candidates.push({ src: video.getAttribute('src'), type: video.getAttribute('type') || '' });
+            }
+            _.each(video.querySelectorAll('source[src]'), function (source) {
+                candidates.push({ src: source.getAttribute('src'), type: source.getAttribute('type') || '' });
+            });
+        });
+        if (!candidates.length) return this._video_url;
+
+        var mp4 = _.find(candidates, function (candidate) {
+            return candidate.type == 'video/mp4' || /\.mp4(\?|#|$)/i.test(candidate.src);
+        });
+        var src = (mp4 || candidates[0]).src;
+        try {
+            src = new URL(src, this.get('story_permalink') || window.location.href).href;
+        } catch (e) {
+            return this._video_url;
+        }
+        this._video_url = src;
+        return this._video_url;
+    },
+
     story_content: function () {
         return this.secure_content('story_content');
     },

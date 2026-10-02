@@ -3464,6 +3464,9 @@ class MStory(mongo.Document):
 
         images = soup.findAll("img")
 
+        # Video posters act as images, so grid tiles in story_title_view.js get a still frame
+        images.extend(soup.findAll("video", poster=True))
+
         # Add youtube thumbnail and insert appropriately before/after images.
         # Give the Youtube a bit of an edge.
         video_thumbnails = soup.findAll(
@@ -3505,6 +3508,8 @@ class MStory(mongo.Document):
         for image in images:
             if isinstance(image, str):
                 image_url = image
+            elif image.name == "video":
+                image_url = image.get("poster")
             else:
                 image_url = image.get("src")
             if not image_url:

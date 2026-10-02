@@ -10,7 +10,9 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
         "click .NB-storytitles-sentiment": "show_manage_menu",
         "click .NB-storytitles-shares": "select_story_shared",
         "mouseenter .NB-story-title": "mouseenter_manage_icon",
-        "mouseleave .NB-story-title": "mouseleave_manage_icon"
+        "mouseleave .NB-story-title": "mouseleave_manage_icon",
+        "mouseenter .NB-has-video": "play_grid_video",
+        "mouseleave .NB-has-video": "pause_grid_video"
     },
 
     initialize: function () {
@@ -50,6 +52,8 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
             show_inline_author: story_layout == "list",
             pane_anchor: this.options.override_layout ? "west" : NEWSBLUR.assets.preference('story_pane_anchor')
         }));
+        // Re-rendering replaces the tile's markup, including any grid video element
+        this.destroy_grid_video();
         this.$st = this.$(".NB-story-title");
         this.toggle_classes();
         this.toggle_read_status();
@@ -158,10 +162,12 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
         <div class="NB-story-title NB-story-title-grid <% if (!show_content_preview) { %>NB-story-title-hide-preview<% } %>">\
             <div class="NB-storytitles-feed-border-inner"></div>\
             <div class="NB-storytitles-feed-border-outer"></div>\
-            <% if (story.image_url()) { %>\
-                <div class="NB-storytitles-story-image-container">\
+            <% if (story.image_url() || story.video_url()) { %>\
+                <div class="NB-storytitles-story-image-container <% if (story.video_url()) { %>NB-has-video<% } %>">\
                   <a href="<%= story.get("story_permalink") %>">\
-                    <div class="NB-storytitles-story-image" <% if (story.image_url()) { %>style="background-image: none, url(\'<%= story.image_url() %>\'); display: block;"<% } %>></div>\
+                    <div class="NB-storytitles-story-image" <% if (story.image_url()) { %>style="background-image: none, url(\'<%= story.image_url() %>\'); display: block;"<% } else { %>style="display: block;"<% } %>>\
+                      <% if (story.video_url() && story.image_url()) { %><div class="NB-storytitles-story-video-icon"></div><% } %>\
+                    </div>\
                   </a>\
                 </div>\
             <% } %>\
@@ -280,6 +286,7 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
         if (this.story_detail) {
             this.story_detail.destroy();
         }
+        this.destroy_grid_video();
         this.model.unbind(null, null, this);
         this.collection.unbind(null, null, this);
         this.remove();
@@ -382,6 +389,11 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
         if (!index && this.load_youtube_embeds()) {
             return;
         }
+        // Grid tiles with a video but no poster image loop the video continuously instead
+        if (!index && this.options.is_grid && !this.model.image_url(0) && this.model.video_url()) {
+            this.create_grid_video({ autoplay: true });
+            return;
+        }
         if (!this.model.image_url(index)) {
             // console.log(["no more image urls", index, this.model.get('story_title').substr(0, 30)]);
             return;
@@ -403,6 +415,113 @@ NEWSBLUR.Views.StoryTitleView = Backbone.View.extend({
             // fail-safe for cached images which sometimes don't trigger "load" events
             if (this.complete) $(this).trigger('load');
         });
+    },
+
+    // ===============
+    // = Grid Videos =
+    // ===============
+
+    // Video URLs come from StoryModel.video_url() in models/stories.js. Styles live in
+    // reader.css under .NB-storytitles-story-video.
+    create_grid_video: function (options) {
+        options = options || {};
+        var self = this;
+        if (this.grid_video) return this.grid_video;
+        if (this.grid_video_failed) return;
+
+        var video_url = this.model.video_url();
+        var $image = this.$(".NB-has-video .NB-storytitles-story-image");
+        if (!video_url || !$image.length) return;
+
+        var $container = this.$(".NB-has-video");
+        if (options.autoplay) $container.addClass('NB-video-autoplay');
+
+        var video = document.createElement('video');
+        video.className = 'NB-storytitles-story-video';
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+        video.preload = 'auto';
+        video.addEventListener('playing', function () {
+            if (self.grid_video === video) $container.addClass('NB-video-playing');
+        });
+        video.addEventListener('error', function () {
+            if (self.grid_video !== video) return;
+            self.grid_video_failed = true;
+            self.destroy_grid_video();
+            if (!self.model.image_url(0)) $container.hide();
+        });
+        video.src = video_url;
+        $image.append(video);
+
+        this.grid_video = video;
+        if (options.autoplay) this.observe_grid_video(video);
+        return video;
+    },
+
+    // Looping videos only play while their tile is on screen, so a long grid doesn't decode
+    // every clip at once
+    observe_grid_video: function (video) {
+        var self = this;
+        if (!window.IntersectionObserver) {
+            this.start_grid_video(video);
+            return;
+        }
+        this.grid_video_observer = new IntersectionObserver(function (entries) {
+            _.each(entries, function (entry) {
+                if (entry.isIntersecting) {
+                    self.start_grid_video(video);
+                } else {
+                    video.pause();
+                }
+            });
+        });
+        this.grid_video_observer.observe(video);
+    },
+
+    start_grid_video: function (video) {
+        var playing = video.play();
+        if (playing && playing.catch) {
+            // Playback can be refused by autoplay policy or interrupted by a pause; nothing to recover
+            playing.catch(function () { });
+        }
+    },
+
+    is_autoplay_grid_video: function () {
+        return this.$(".NB-has-video").hasClass('NB-video-autoplay');
+    },
+
+    play_grid_video: function () {
+        if (this.is_autoplay_grid_video()) return;
+        var video = this.create_grid_video();
+        if (!video) return;
+
+        this.start_grid_video(video);
+    },
+
+    pause_grid_video: function () {
+        if (this.is_autoplay_grid_video()) return;
+        this.$(".NB-has-video").removeClass('NB-video-playing');
+        if (this.grid_video) this.grid_video.pause();
+    },
+
+    destroy_grid_video: function () {
+        if (!this.grid_video) return;
+
+        var video = this.grid_video;
+        this.grid_video = null;
+        if (this.grid_video_observer) {
+            this.grid_video_observer.disconnect();
+            this.grid_video_observer = null;
+        }
+        video.pause();
+        // Clearing the source stops any download still in progress
+        video.removeAttribute('src');
+        video.load();
+        $(video).remove();
+        this.$(".NB-has-video").removeClass('NB-video-playing NB-video-autoplay');
     },
 
     select_regex: function (query, url) {
