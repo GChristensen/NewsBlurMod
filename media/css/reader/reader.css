@@ -3209,6 +3209,11 @@ img.feed_favicon {
 /* Grid tiles with an mp4, played on hover by story_title_view.js (create_grid_video) */
 .NB-story-title-grid .NB-storytitles-story-image-container.NB-has-video .NB-storytitles-story-image {
     position: relative;
+    /* Reset list-view offsets (.NB-story-title .NB-storytitles-story-image) that relative positioning would apply */
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
     overflow: hidden;
 }
 
