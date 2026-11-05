@@ -27,6 +27,10 @@ def _read_env_file_var(name, env_path="/srv/newsblur/.env"):
 
 NEWSBLURMOD_HTTPS_PORT = os.getenv("NEWSBLURMOD_HTTPS_PORT") or _read_env_file_var("NEWSBLURMOD_HTTPS_PORT")
 
+# Sentry stays disabled unless NEWSBLURMOD_SENTRY_DSN is set in .env. This replaces the
+# placeholder app.getsentry.com DSN from newsblur_web/settings.py.
+SENTRY_DSN = os.getenv("NEWSBLURMOD_SENTRY_DSN") or _read_env_file_var("NEWSBLURMOD_SENTRY_DSN")
+
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
 NEWSBLUR_URL          = 'https://newsblur'
