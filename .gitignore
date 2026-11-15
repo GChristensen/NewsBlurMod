@@ -74,3 +74,4 @@ apps/api/ip_addresses.txt
 
 /.idea
 /*.iml
+/.local/
