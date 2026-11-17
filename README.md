@@ -1,3 +1,7 @@
+# DISCONTINUED
+
+Please see [NewsSharp](https://gchristensen.github.io/newssharp).
+
 # NewsBlurMod
 
 This is a fork of [NewsBlur](https://github.com/samuelclay/NewsBlur) for self-hosting with 
